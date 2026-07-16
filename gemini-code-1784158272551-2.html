@@ -219,6 +219,21 @@
       animation: scan-line 2.5s linear infinite;
     }
 
+    @keyframes scan-line {
+      0% { top: 0%; }
+      50% { top: 100%; }
+      100% { top: 0%; }
+    }
+
+    @keyframes glitch {
+      0% { transform: skew(0deg); filter: hue-rotate(0deg); opacity: 0.3; }
+      20% { transform: skew(4deg) scale(1.05); filter: hue-rotate(90deg); opacity: 0.8; }
+      40% { transform: skew(-4deg); opacity: 0.5; }
+      60% { transform: skew(2deg) scale(0.98); opacity: 0.9; }
+      80% { transform: skew(-1deg); opacity: 0.7; }
+      100% { transform: skew(0deg); filter: hue-rotate(0deg); opacity: 1; }
+    }
+
     .crosshair {
       position: absolute;
       top: 50%;
@@ -283,8 +298,8 @@
     #spot-voodoo { top: 40%; left: 89%; width: 180px; }
     #spot-notebook { top: 62%; left: 77%; width: 200px; }
     /* 잠긴(비활성) 대상 */
-    #spot-pencil { top: 52%; left: 7%; width: 110px; }
-    #spot-headset { top: 40%; left: 74%; width: 150px; }
+    #spot-pencil { top: 47%; left: 7%; width: 110px; }
+    #spot-headset { top: 30%; left: 77%; width: 150px; }
 
     /* 민트 네온 매트릭스 팝업 */
     .cyber-popup {
