@@ -730,6 +730,7 @@
     }
 
     function openPanelStage() {
+      closePopup();          // 열려있는 단일 영상 팝업을 먼저 닫음
       activeIndex = 0;
       buildPanels();
       layout();
@@ -811,6 +812,7 @@
     });
 
     function openPopup(title, videoUrl) {
+      panelStage.classList.remove('show');   // 열려있는 커버플로우를 먼저 닫음
       popupTitle.innerText = title;
       popup.style.display = 'flex';
       popup.style.zIndex = ++topZIndex;
