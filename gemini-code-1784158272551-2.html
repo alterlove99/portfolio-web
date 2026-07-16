@@ -9,7 +9,11 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700;900&family=Noto+Sans+KR:wght@500;700;900&display=swap" rel="stylesheet">
-  
+
+  <!-- lightGallery (멀티 영상 슬라이드용) -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/lightgallery@2.7.2/css/lightgallery.min.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/lightgallery@2.7.2/css/lg-video.min.css">
+
   <style>
     :root {
       --mint: #00FFCC;
@@ -356,6 +360,15 @@
       background: var(--mint);
       color: #000;
     }
+
+    /* lightGallery 백드롭 톤 (사이버 테마 매칭) */
+    .lg-backdrop { background-color: rgba(5, 6, 8, 0.96); }
+    .lg-toolbar .lg-icon { color: var(--mint); }
+    .lg-sub-html h4 {
+      color: var(--mint);
+      font-family: 'Orbitron', sans-serif;
+      letter-spacing: 0.03em;
+    }
   </style>
 </head>
 <body>
@@ -424,6 +437,16 @@
       </div>
     </div>
 
+    <!-- 멀티 영상 슬라이드용 (화면에 안 보이고, TV hotspot 클릭 시 프로그래밍 방식으로 열림) -->
+    <div id="tvGallery" style="display:none">
+      <a data-lg-size="1280-720"
+         data-src="https://www.youtube.com/watch?v=tQzRMOwtmP8"
+         data-sub-html="<h4>⚡ COMMERCIAL · PART 1</h4>"></a>
+      <a data-lg-size="1280-720"
+         data-src="https://www.youtube.com/watch?v=ghQFJoDIGMo"
+         data-sub-html="<h4>⚡ COMMERCIAL · PART 2</h4>"></a>
+    </div>
+
     <div class="interaction-guide">System Ready. Select an object to initiate streaming bridge.</div>
 
     <div class="cyber-popup" id="videoPopup">
@@ -445,6 +468,8 @@
   </div>
 
   <script src="https://www.youtube.com/iframe_api"></script>
+  <script src="https://cdn.jsdelivr.net/npm/lightgallery@2.7.2/lightgallery.umd.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/lightgallery@2.7.2/plugins/video/lg-video.umd.min.js"></script>
   <script>
     let topZIndex = 100;
     const popup = document.getElementById('videoPopup');
@@ -502,12 +527,16 @@
       videoFallback.classList.add('show');
     }
 
-    // 텔레비전 영상 스왑 전용 전용 노쿠키 보안 링크 우회 적용 완료
-    const tvVideos = [
-      "https://www.youtube-nocookie.com/embed/tQzRMOwtmP8?autoplay=1&rel=0",
-      "https://www.youtube-nocookie.com/embed/ghQFJoDIGMo?autoplay=1&rel=0"
-    ];
-    let tvIndex = 0;
+    // 멀티 영상(TV) 슬라이드: lightGallery 인스턴스
+    // 여러 영상은 #tvGallery 안에 <a data-src="..."> 아이템만 추가하면 자동으로 슬라이드로 묶임
+    const tvLightGallery = lightGallery(document.getElementById('tvGallery'), {
+      plugins: [lgVideo],
+      selector: 'a',
+      youTubePlayerParams: { autoplay: 1, rel: 0, modestbranding: 1 },
+      autoplayFirstVideo: true,
+      download: false,
+      counter: true
+    });
 
     window.addEventListener('DOMContentLoaded', () => {
       setTimeout(() => {
@@ -523,9 +552,8 @@
           openPopup(spot.getAttribute('data-title'), spot.getAttribute('data-video'));
         } 
         else if (type === 'multi-video') {
-          const currentVideo = tvVideos[tvIndex];
-          openPopup(`${spot.getAttribute('data-title')} (PART_${tvIndex + 1})`, currentVideo);
-          tvIndex = (tvIndex + 1) % tvVideos.length;
+          // lightGallery를 첫 번째 슬라이드부터 열기 (좌우 화살표로 이동)
+          tvLightGallery.openGallery(0);
         } 
         else if (type === 'link') {
           const targetUrl = spot.getAttribute('data-url');
