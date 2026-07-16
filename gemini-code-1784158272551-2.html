@@ -795,13 +795,13 @@
     }
 
     // ===== 3D 영상 패널 뷰 =====
-    // ===== 통합 데이터: 모든 hotspot을 여기서 관리 =====
-    // videos 배열의 개수에 따라 UI가 자동 결정됩니다:
-    //   - 영상 1개  → 사이버 팝업
-    //   - 영상 2개+ → 커버플로우
-    // 영상 추가/변경은 아래 hotspotData만 수정하면 됩니다.
-    // (노트북은 외부 링크 타입이라 별도)
-    const hotspotData = {
+    // ===== 통합 데이터: 모든 hotspot =====
+    // 실제 데이터는 Google Sheets(Apps Script)에서 실시간으로 불러옵니다.
+    // 아래는 시트 로딩 실패 시 사용할 "기본값(폴백)"입니다.
+    // videos 개수에 따라 UI 자동 결정: 1개→팝업, 2개+→커버플로우
+    const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwWcYCq7Ofv8XVuy2rq_MtQKG7pU9cexF0RzYRpc1DJILROcbI-0dX9GKQiRNeEHyA/exec";
+
+    const DEFAULT_HOTSPOT_DATA = {
       "spot-tv": {
         title: "⚡ LOCK_ON: COMMERCIAL",
         videos: [
@@ -832,6 +832,23 @@
         url: "https://www.notion.so"
       }
     };
+
+    // 실제 사용되는 데이터 (시트에서 불러온 값으로 교체됨, 실패 시 기본값 유지)
+    let hotspotData = JSON.parse(JSON.stringify(DEFAULT_HOTSPOT_DATA));
+
+    // 시트에서 데이터 불러오기 (사이트 로딩 시)
+    async function loadHotspotData() {
+      try {
+        const res = await fetch(APPS_SCRIPT_URL, { method: 'GET' });
+        const json = await res.json();
+        if (json && json.ok && json.data) {
+          hotspotData = json.data;
+        }
+      } catch (err) {
+        // 실패 시 DEFAULT_HOTSPOT_DATA 유지 — 사이트는 그대로 작동
+        console.warn('영상 데이터를 시트에서 불러오지 못했습니다. 기본값을 사용합니다.', err);
+      }
+    }
 
     // 현재 커버플로우에 로드된 영상 목록 (열 때마다 해당 hotspot 것으로 채워짐)
     let currentVideos = [];
@@ -966,6 +983,8 @@
     });
 
     window.addEventListener('DOMContentLoaded', () => {
+      // 인트로가 뜨는 동안 시트에서 영상 데이터를 불러옴 (사용자는 대기를 못 느낌)
+      loadHotspotData();
       setTimeout(() => {
         introOverlay.classList.add('fade-out');
       }, 2400);
@@ -1069,22 +1088,14 @@
         <button class="btn-ghost" onclick="adminAddRow()">＋ 영상 추가</button>
 
         <div class="admin-actions">
-          <button class="btn-mint" onclick="adminGenerateCode()">저장 · 코드 내보내기</button>
+          <button class="btn-mint" id="adminSaveBtn" onclick="adminGenerateCode()">저장 (시트에 반영)</button>
           <button class="btn-ghost" onclick="adminReset()">되돌리기</button>
         </div>
 
-        <div class="admin-export" id="adminExport" style="display:none">
-          <p class="admin-section-label">아래 코드로 index.html의 hotspotData를 교체하세요</p>
-          <textarea id="adminCode" readonly onclick="this.select()"></textarea>
-          <div style="margin-top:10px; display:flex; gap:10px;">
-            <button class="btn-mint" onclick="adminCopyCode()">클립보드에 복사</button>
-          </div>
-          <p class="admin-hint">
-            복사한 코드로 index.html의 <code>const hotspotData = { ... };</code> 부분을 통째로 교체한 뒤,
-            GitHub에 커밋하면 모든 방문자에게 반영됩니다. (이 편집은 저장 전까지 실제 사이트에 반영되지 않습니다.)<br>
-            영상이 1개면 팝업, 2개 이상이면 커버플로우로 자동 표시됩니다.
-          </p>
-        </div>
+        <p class="admin-hint" style="margin-top:14px;">
+          저장하면 Google Sheets에 기록되고, 모든 방문자에게 즉시 반영됩니다.
+          영상이 1개면 팝업, 2개 이상이면 커버플로우로 자동 표시됩니다.
+        </p>
       </div>
     </div>
   </div>
@@ -1099,13 +1110,12 @@
     const adminLogin = document.getElementById('adminLogin');
     const adminPanel = document.getElementById('adminPanel');
     const adminVidList = document.getElementById('adminVidList');
-    const adminExport = document.getElementById('adminExport');
-    const adminCode = document.getElementById('adminCode');
     const toastEl = document.getElementById('toast');
 
     // 편집용 작업 사본 (실제 hotspotData는 저장 전까지 안 건드림)
     let adminDraft = {};        // hotspotData의 깊은 복사본
     let activeSpotId = null;     // 현재 편집 중인 hotspot id
+    let adminSessionPw = "";     // 로그인 시 입력한 비번 (저장 요청에 사용)
 
     // hotspot 표시 이름 (탭 라벨용)
     const spotLabels = {
@@ -1140,6 +1150,7 @@
     function adminAuth() {
       const pw = document.getElementById('adminPw').value;
       if (pw === ADMIN_PASSWORD) {
+        adminSessionPw = pw;   // 저장 시 시트로 함께 전송
         adminLogin.style.display = 'none';
         adminPanel.style.display = 'block';
         loadDraft();
@@ -1182,7 +1193,6 @@
     function selectSpot(id) {
       if (!id) return;
       activeSpotId = id;
-      adminExport.style.display = 'none';
       document.getElementById('adminListLabel').textContent =
         `${spotLabels[id] || id} 영상 목록  ·  ${adminDraft[id].videos.length}개면 ` +
         (adminDraft[id].videos.length > 1 ? '커버플로우로 표시' : '팝업으로 표시');
@@ -1236,13 +1246,12 @@
     }
     function adminReset() {
       loadDraft();
-      adminExport.style.display = 'none';
       selectSpot(activeSpotId);
-      showToast('원래 목록으로 되돌렸습니다');
+      showToast('편집을 취소했습니다');
     }
 
-    // 전체 hotspotData 코드 생성
-    function adminGenerateCode() {
+    // 저장: 시트에 직접 쓰기 (POST)
+    async function adminGenerateCode() {
       // 각 hotspot의 빈 ID 영상 제거
       for (const id of Object.keys(adminDraft)) {
         if (adminDraft[id].videos) {
@@ -1250,35 +1259,48 @@
         }
       }
 
-      const esc = s => (s || '').replace(/"/g, '\\"');
-      const parts = [];
+      // 저장할 데이터 객체 구성 (깔끔하게 trim 처리)
+      const payload = {};
       for (const [id, d] of Object.entries(adminDraft)) {
         if (d.videos) {
-          const vids = d.videos.map(v =>
-            `          { id: "${esc(v.id.trim())}", tag: "${esc(v.tag||'⚡')}", title: "${esc((v.title||'').trim())}" }`
-          ).join(',\n');
-          parts.push(`      "${id}": {\n        title: "${esc(d.title)}",\n        videos: [\n${vids}\n        ]\n      }`);
+          payload[id] = {
+            title: (d.title || '').trim(),
+            videos: d.videos.map(v => ({
+              id: (v.id || '').trim(),
+              tag: v.tag || '⚡',
+              title: (v.title || '').trim()
+            }))
+          };
         } else if (d.type === 'link') {
-          parts.push(`      "${id}": {\n        type: "link",\n        url: "${esc(d.url)}"\n      }`);
+          payload[id] = { type: 'link', url: (d.url || '').trim() };
         }
       }
-      adminCode.value = `const hotspotData = {\n${parts.join(',\n')}\n    };`;
-      adminExport.style.display = 'block';
 
-      // 미리보기: 실제 hotspotData도 갱신 (이 세션 한정)
-      for (const [id, d] of Object.entries(adminDraft)) {
-        if (d.videos) hotspotData[id] = { title: d.title, videos: d.videos.map(v => ({ ...v })) };
-        else hotspotData[id] = { ...d };
+      const saveBtn = document.getElementById('adminSaveBtn');
+      if (saveBtn) { saveBtn.disabled = true; saveBtn.textContent = '저장 중...'; }
+
+      try {
+        // Apps Script는 CORS 프리플라이트를 피하기 위해 text/plain 으로 전송
+        const res = await fetch(APPS_SCRIPT_URL, {
+          method: 'POST',
+          headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+          body: JSON.stringify({ password: adminSessionPw, data: payload })
+        });
+        const json = await res.json();
+        if (json && json.ok) {
+          // 실제 사이트 데이터에도 즉시 반영
+          hotspotData = JSON.parse(JSON.stringify(payload));
+          renderTabs();
+          showToast('저장 완료 — 모든 방문자에게 반영됩니다');
+        } else {
+          showToast('저장 실패: ' + (json && json.error ? json.error : '알 수 없는 오류'));
+        }
+      } catch (err) {
+        showToast('저장 실패: 네트워크 오류');
+        console.error(err);
+      } finally {
+        if (saveBtn) { saveBtn.disabled = false; saveBtn.textContent = '저장 (시트에 반영)'; }
       }
-      renderTabs();
-      showToast('코드를 생성했습니다 — 아래에서 복사하세요');
-    }
-
-    function adminCopyCode() {
-      adminCode.select();
-      navigator.clipboard.writeText(adminCode.value)
-        .then(() => showToast('클립보드에 복사됨'))
-        .catch(() => { document.execCommand('copy'); showToast('복사됨'); });
     }
 
     // 진입점: 로드 시 & 해시 변경 시
