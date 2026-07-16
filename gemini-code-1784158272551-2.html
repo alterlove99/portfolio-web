@@ -144,6 +144,54 @@
       z-index: 5;
     }
 
+    /* 노트북 역사다리꼴 3D 원근 투영 렌더링 */
+    .laptop-screen-container {
+      position: absolute;
+      top: 13.9%;
+      left: 35.6%;
+      width: 25.1%;
+      height: 26.2%;
+      z-index: 8;
+      pointer-events: auto;
+      background: #000;
+      perspective: 350px;
+      transform-style: preserve-3d;
+    }
+
+    .laptop-video {
+      position: relative;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+      z-index: 1;
+      transform: 
+        rotateX(26deg) 
+        rotateY(-2.3deg) 
+        rotateZ(0.6deg) 
+        skewX(-0.5deg);
+      transform-origin: bottom center;
+      border-radius: 4px;
+    }
+
+    .laptop-screen-container::after {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(135deg, rgba(255, 255, 255, 0.1) 0%, rgba(255, 255, 255, 0) 60%, rgba(0, 0, 0, 0.3) 100%);
+      pointer-events: none;
+      z-index: 3;
+      transform: 
+        rotateX(26deg) 
+        rotateY(-2.3deg) 
+        rotateZ(0.6deg) 
+        skewX(-0.5deg);
+      transform-origin: bottom center;
+    }
+
     /* 대화형 핫스팟 영역 */
     .hotspot-target {
       position: absolute;
@@ -242,21 +290,6 @@
     .c-bl { bottom: -3px; left: -3px; border-right: none; border-top: none; }
     .c-br { bottom: -3px; right: -3px; border-left: none; border-top: none; }
 
-    @keyframes scan-line {
-      0% { top: 0%; }
-      50% { top: 100%; }
-      100% { top: 0%; }
-    }
-
-    @keyframes glitch {
-      0% { transform: skew(0deg); filter: hue-rotate(0deg); opacity: 0.3; }
-      20% { transform: skew(4deg) scale(1.05); filter: hue-rotate(90deg); opacity: 0.8; }
-      40% { transform: skew(-4deg); opacity: 0.5; }
-      60% { transform: skew(2deg) scale(0.98); opacity: 0.9; }
-      80% { transform: skew(-1deg); opacity: 0.7; }
-      100% { transform: skew(0deg); filter: hue-rotate(0deg); opacity: 1; }
-    }
-
     /* 책상 레이아웃 좌표 매핑 */
     #spot-tv { top: 29%; left: 12.5%; width: 215px; }
     #spot-figure { top: 46%; left: 27%; width: 120px; }
@@ -265,11 +298,11 @@
     #spot-notebook { top: 62%; left: 77%; width: 200px; }
 
     /* --------------------------------------------------
-       [핵심] 공통 디자인이 유지되는 통합 사이버 팝업
+       [단일 영상] 평면 뷰 (기존 팝업 UI)
        -------------------------------------------------- */
     .cyber-popup {
       position: absolute;
-      width: 660px; /* 다중 패널이 여유롭게 들어가도록 창 너비 소폭 확대 */
+      width: 660px;
       background: var(--glass-bg);
       backdrop-filter: blur(15px);
       border: 1px solid var(--mint);
@@ -306,18 +339,12 @@
       text-shadow: 0 0 5px var(--mint);
     }
 
-    /* --------------------------------------------------
-       단일 영상 뷰 (이미지 왼쪽처럼 평면으로 꽉 차게 나옴)
-       -------------------------------------------------- */
     .popup-body-single {
       position: relative;
       background: #000;
       aspect-ratio: 16 / 9;
       overflow: hidden;
-      display: none;
-    }
-    .popup-body-single.show {
-      display: block;
+      width: 100%;
     }
 
     .video-wrapper iframe {
@@ -328,7 +355,6 @@
       height: 100%;
     }
 
-    /* 에러 폴백 UI */
     .video-fallback {
       display: none;
       position: absolute;
@@ -343,99 +369,133 @@
     .video-fallback a:hover { background: var(--mint); color: #000; }
 
     /* --------------------------------------------------
-       다중 영상 뷰 (이미지 오른쪽처럼 V자 형태로 원근감 렌더링)
+       [다중 영상] 허공에 띄워진 V자 3D 스테이지 (이미지 오른쪽 반영)
        -------------------------------------------------- */
-    .popup-body-multi {
+    .multi-stage-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      /* 책상이 보이도록 옅은 그림자막만 추가 */
+      background: rgba(0, 0, 0, 0.4); 
+      z-index: 1500;
       display: none;
-      width: 100%;
-      padding: 50px 20px;
-      perspective: 900px; /* 깊이감 부여 */
-      background: radial-gradient(circle at center, #141b29 0%, #000000 100%);
-      flex-direction: row;
       align-items: center;
       justify-content: center;
-      gap: 30px;
+      perspective: 1200px; /* 깊은 원근감 부여 */
     }
-    .popup-body-multi.show {
+    .multi-stage-overlay.show {
       display: flex;
     }
 
-    /* 창 내부의 3D 비디오 패널 카드 */
-    .popup-vpanel {
-      width: 260px;
-      background: rgba(20, 24, 35, 0.95);
+    /* 패널들을 V자로 정렬하는 컨테이너 */
+    .multi-panels-container {
+      display: flex;
+      flex-direction: row;
+      gap: 60px; /* 두 영상 사이의 간격 */
+      align-items: center;
+      justify-content: center;
+      transform-style: preserve-3d;
+    }
+
+    /* 3D 홀로그램 카드 (영상 썸네일) */
+    .stage-vpanel {
+      width: 380px; /* 단일 팝업창보다 약간 작게 2개를 띄움 */
+      background: rgba(13, 14, 18, 0.95);
       border: 1px solid var(--mint);
-      box-shadow: 0 0 20px rgba(0, 255, 204, 0.15);
+      box-shadow: 0 0 30px rgba(0, 255, 204, 0.2);
       cursor: pointer;
       display: flex;
       flex-direction: column;
       transition: transform 0.4s cubic-bezier(0.25, 0.8, 0.25, 1), box-shadow 0.4s, border-color 0.4s;
     }
 
-    /* 요청하신 왼쪽/오른쪽 안쪽을 바라보는 기울기 클래스 */
-    .popup-vpanel.tilt-left {
-      transform: rotateY(25deg);
-    }
-    .popup-vpanel.tilt-right {
-      transform: rotateY(-25deg);
+    /* 왼쪽 패널은 오른쪽을 바라보도록 틸트 */
+    .stage-vpanel.tilt-left {
+      transform: rotateY(28deg);
     }
 
-    /* 마우스 호버 시 원근감을 풀면서 화면 앞으로 당겨옴 */
-    .popup-vpanel:hover {
+    /* 오른쪽 패널은 왼쪽을 바라보도록 틸트 */
+    .stage-vpanel.tilt-right {
+      transform: rotateY(-28deg);
+    }
+
+    /* 마우스 호버 시 원근감을 풀며 튀어나옴 */
+    .stage-vpanel:hover {
       border-color: #FFF;
-      box-shadow: 0 0 35px rgba(0, 255, 204, 0.5);
-      transform: rotateY(0deg) scale(1.05) translateZ(30px);
+      box-shadow: 0 0 50px rgba(0, 255, 204, 0.5);
+      transform: rotateY(0deg) scale(1.08) translateZ(50px);
       z-index: 10;
     }
 
-    .popup-vpanel-header {
-      padding: 8px 12px;
+    .stage-vpanel-header {
+      padding: 10px 16px;
       border-bottom: 1px solid rgba(0, 255, 204, 0.2);
       background: rgba(0, 255, 204, 0.03);
     }
-    .popup-vpanel-title {
+    .stage-vpanel-title {
       font-weight: 700;
-      font-size: 0.75rem;
+      font-size: 0.85rem;
       color: #FFF;
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
       display: block;
+      text-shadow: 0 0 5px var(--mint);
     }
 
-    .popup-vpanel-body {
+    .stage-vpanel-body {
       position: relative;
       background: #000;
       aspect-ratio: 16 / 9;
       overflow: hidden;
     }
-    .popup-vpanel-body img {
+    .stage-vpanel-body img {
       width: 100%;
       height: 100%;
       object-fit: cover;
       opacity: 0.6;
       transition: opacity 0.2s;
     }
-    .popup-vpanel:hover .popup-vpanel-body img { opacity: 0.95; }
+    .stage-vpanel:hover .stage-vpanel-body img { opacity: 0.95; }
 
-    .popup-vpanel-play {
+    .stage-vpanel-play {
       position: absolute;
       inset: 0;
       display: flex;
       align-items: center;
       justify-content: center;
     }
-    .popup-vpanel-play::after {
+    .stage-vpanel-play::after {
       content: "";
-      width: 40px; height: 40px;
+      width: 50px; height: 50px;
       border-radius: 50%;
       background: rgba(0,0,0,0.6);
-      border: 1px solid var(--mint);
-      box-shadow: 0 0 10px var(--mint-glow);
-      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='%2300FFCC'%3E%3Cpath d='M8 5v14l11-7z'/%3E%3C/svg%3E");
+      border: 2px solid var(--mint);
+      box-shadow: 0 0 15px var(--mint-glow);
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='20' height='20' viewBox='0 0 24 24' fill='%2300FFCC'%3E%3Cpath d='M8 5v14l11-7z'/%3E%3C/svg%3E");
       background-repeat: no-repeat;
-      background-position: 58% center;
+      background-position: 56% center;
     }
+
+    /* 3D 스테이지를 닫는 취소 버튼 */
+    .close-stage-btn {
+      position: absolute;
+      top: 30px;
+      right: 40px;
+      background: none;
+      border: none;
+      color: var(--mint);
+      font-size: 2rem;
+      cursor: pointer;
+      text-shadow: 0 0 10px var(--mint-glow);
+      transition: transform 0.2s;
+    }
+    .close-stage-btn:hover {
+      transform: scale(1.2);
+    }
+
   </style>
 </head>
 <body>
@@ -448,6 +508,12 @@
   </div>
 
   <div class="desk-viewport">
+
+    <div class="laptop-screen-container">
+      <video class="laptop-video" autoplay muted loop playsinline>
+        <source src="laptop_shorweel.mp4" type="video/mp4">
+      </video>
+    </div>
 
     <div class="hotspot-target" id="spot-tv" data-type="multi-video" data-title="⚡ COMMERCIAL ARCHIVE">
       <div class="ratio-4-3-box">
@@ -511,7 +577,6 @@
         <span class="popup-title" id="popupTitle">QUANTUM INTERFACE LINK</span>
         <button class="popup-close" onclick="closePopup()">✕</button>
       </div>
-      
       <div class="popup-body-single" id="popupBodySingle">
         <div class="video-wrapper">
           <div id="popupIframe"></div>
@@ -521,8 +586,11 @@
           </div>
         </div>
       </div>
+    </div>
 
-      <div class="popup-body-multi" id="popupBodyMulti"></div>
+    <div class="multi-stage-overlay" id="multiStageOverlay">
+      <button class="close-stage-btn" onclick="closeMultiStage()">✕</button>
+      <div class="multi-panels-container" id="multiPanelsContainer"></div>
     </div>
 
   </div>
@@ -532,10 +600,9 @@
     let topZIndex = 100;
     const popup = document.getElementById('videoPopup');
     const popupTitle = document.getElementById('popupTitle');
-    
-    // 내용이 스왑될 컨테이너 2개
     const popupBodySingle = document.getElementById('popupBodySingle');
-    const popupBodyMulti = document.getElementById('popupBodyMulti');
+    const multiStageOverlay = document.getElementById('multiStageOverlay');
+    const multiPanelsContainer = document.getElementById('multiPanelsContainer');
     
     const videoFallback = document.getElementById('videoFallback');
     const videoFallbackLink = document.getElementById('videoFallbackLink');
@@ -589,40 +656,35 @@
       });
     }
 
-    // 다중 영상을 창 내부에 V자 원근감 3D로 그리는 함수
-    function buildMultiPanels(titleBase) {
-      popupBodyMulti.innerHTML = '';
+    // 허공에 V자 형태로 3D 패널을 렌더링하는 함수
+    function buildMultiStage(titleBase) {
+      multiPanelsContainer.innerHTML = '';
       
       tvSlides.forEach((slide, idx) => {
         const panel = document.createElement('div');
         
-        // 짝수 인덱스는 오른쪽으로 눕고, 홀수 인덱스는 왼쪽으로 눕는 대칭 구조 적용
-        if (idx % 2 === 0) {
-          panel.className = 'popup-vpanel tilt-left';
-        } else {
-          panel.className = 'popup-vpanel tilt-right';
-        }
+        // 인덱스 0번은 왼쪽 틸트, 1번은 오른쪽 틸트로 V자 배열 완성
+        panel.className = idx % 2 === 0 ? 'stage-vpanel tilt-left' : 'stage-vpanel tilt-right';
 
         panel.innerHTML = `
-          <div class="popup-vpanel-header">
-            <span class="popup-vpanel-title">${slide.tag} ${slide.title}</span>
+          <div class="stage-vpanel-header">
+            <span class="stage-vpanel-title">${slide.tag} ${slide.title}</span>
           </div>
-          <div class="popup-vpanel-body">
+          <div class="stage-vpanel-body">
             <img src="https://img.youtube.com/vi/${slide.id}/hqdefault.jpg" alt="${slide.title}">
-            <div class="popup-vpanel-play"></div>
+            <div class="stage-vpanel-play"></div>
           </div>
         `;
 
-        // 3D 카드 클릭 시, 내부 컨테이너만 평면 비디오 모드로 스왑
+        // 3D 카드 클릭 시, 홀로그램 스테이지를 닫고 평면 모달창에서 영상 재생
         panel.addEventListener('click', (e) => {
           e.stopPropagation();
-          popupBodyMulti.classList.remove('show');
-          popupBodySingle.classList.add('show');
-          popupTitle.innerText = `${titleBase} // ${slide.title}`;
+          closeMultiStage();
+          openPopupFrame(`${titleBase} // ${slide.title}`);
           loadVideo(slide.id);
         });
 
-        popupBodyMulti.appendChild(panel);
+        multiPanelsContainer.appendChild(panel);
       });
     }
 
@@ -638,22 +700,17 @@
         const title = spot.getAttribute('data-title');
         
         if (type === 'video') {
-          // 영상이 1개: 3D 모드를 끄고, 단일 평면 모드를 켬
-          popupBodyMulti.classList.remove('show');
+          // 영상 1개: 기존 사이버 팝업 렌더링
           popupBodySingle.classList.add('show');
-          
           openPopupFrame(title);
           
           const videoId = extractVideoId(spot.getAttribute('data-video'));
           if (videoId) loadVideo(videoId);
         } 
         else if (type === 'multi-video') {
-          // 영상이 다수: 평면 모드를 끄고, V자 3D 배열 모드를 켬
-          popupBodySingle.classList.remove('show');
-          popupBodyMulti.classList.add('show');
-          
-          openPopupFrame(title);
-          buildMultiPanels(title);
+          // 영상 여러 개: 허공에 V자형 3D 스테이지 렌더링
+          buildMultiStage(title);
+          multiStageOverlay.classList.add('show');
         } 
         else if (type === 'link') {
           window.open(spot.getAttribute('data-url'), '_blank');
@@ -661,12 +718,24 @@
       });
     });
 
+    // 3D 다중 영상 스테이지 닫기
+    function closeMultiStage() {
+      multiStageOverlay.classList.remove('show');
+    }
+
+    // 배경 클릭 시 3D 스테이지 닫기 기능
+    multiStageOverlay.addEventListener('click', (e) => {
+      if (e.target === multiStageOverlay || e.target === multiPanelsContainer) {
+        closeMultiStage();
+      }
+    });
+
     function openPopupFrame(title) {
       popupTitle.innerText = title;
       popup.style.display = 'flex';
       popup.style.zIndex = ++topZIndex;
 
-      // 화면 중앙 정렬
+      // 중앙 정렬
       popup.style.left = `${(window.innerWidth - 660) / 2}px`;
       popup.style.top = `${(window.innerHeight - popup.offsetHeight) / 2}px`;
     }
@@ -674,14 +743,14 @@
     function closePopup() {
       popup.style.display = 'none';
       videoFallback.classList.remove('show');
+      popupBodySingle.classList.remove('show');
       
-      // 영상 재생 정지
       if (ytPlayer && typeof ytPlayer.stopVideo === 'function') {
         ytPlayer.stopVideo();
       }
     }
 
-    // 모달 드래그 기능 (디자인이 통일되었으므로 한 번만 선언)
+    // 모달창 드래그 시스템
     let isDragging = false;
     let startX, startY, initialX, initialY;
     const popupHeader = document.getElementById('popupHeader');
