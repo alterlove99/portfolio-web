@@ -14,8 +14,6 @@
     :root {
       --mint: #00FFCC;
       --mint-glow: rgba(0, 255, 204, 0.3);
-      --charcoal: #0D0E12;
-      --glass-bg: rgba(13, 14, 18, 0.85);
     }
 
     * {
@@ -47,65 +45,31 @@
       overflow: hidden;
     }
 
-    /* [인트로] 시네마틱 오버레이 */
+    /* 시네마틱 인트로 */
     .intro-overlay {
       position: fixed;
-      top: 0;
-      left: 0;
-      width: 100vw;
-      height: 100vh;
+      top: 0; left: 0; width: 100vw; height: 100vh;
       background: radial-gradient(circle at center, #10151d 0%, #030508 100%);
       z-index: 9999;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
+      display: flex; flex-direction: column; align-items: center; justify-content: center;
       transition: opacity 1s cubic-bezier(0.85, 0, 0.15, 1), visibility 1s;
-      opacity: 1;
-      visibility: visible;
-      overflow: hidden;
     }
-
     .intro-overlay::before {
-      content: '';
-      position: absolute;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
+      content: ''; position: absolute; top: 0; left: 0; width: 100%; height: 100%;
       background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.3) 50%), linear-gradient(90deg, rgba(255, 0, 0, 0.03), rgba(0, 255, 0, 0.01), rgba(0, 0, 255, 0.03));
-      background-size: 100% 4px, 6px 100%;
-      opacity: 0.6;
-      pointer-events: none;
+      background-size: 100% 4px, 6px 100%; opacity: 0.6; pointer-events: none;
     }
+    .intro-overlay.fade-out { opacity: 0; visibility: hidden; }
 
-    .intro-overlay.fade-out {
-      opacity: 0;
-      visibility: hidden;
-    }
-
-    .intro-title-box {
-      text-align: center;
-      position: relative;
-    }
-
+    .intro-title-box { text-align: center; position: relative; }
     .intro-title-box h1 {
-      font-size: 4rem;
-      font-weight: 900;
-      letter-spacing: 6px;
-      color: #FFFFFF;
+      font-size: 4rem; font-weight: 900; letter-spacing: 6px; color: #FFFFFF;
       text-shadow: 0 0 20px rgba(0, 255, 204, 0.6);
       animation: cyber-boot 1.8s steps(1, start) infinite, text-pulse 2.2s ease-in-out infinite alternate;
     }
-
     .intro-title-box p {
-      font-size: 0.95rem;
-      font-weight: 700;
-      color: var(--mint);
-      text-transform: uppercase;
-      letter-spacing: 12px;
-      margin-top: 10px;
-      opacity: 0.8;
+      font-size: 0.95rem; font-weight: 700; color: var(--mint); text-transform: uppercase;
+      letter-spacing: 12px; margin-top: 10px; opacity: 0.8;
       animation: tracking-in 1.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
     }
 
@@ -115,12 +79,10 @@
       94% { transform: translate(2px, -1px) skewX(-3deg); color: #FF3366; }
       96% { transform: translate(-1px, -2px); filter: blur(1px); }
     }
-
     @keyframes text-pulse {
       0% { transform: scale(0.98); opacity: 0.9; }
       100% { transform: scale(1.02); opacity: 1; }
     }
-
     @keyframes tracking-in {
       from { letter-spacing: -5px; opacity: 0; filter: blur(3px); }
       to { letter-spacing: 12px; opacity: 0.8; filter: blur(0); }
@@ -128,169 +90,63 @@
 
     /* 안내 가이드 */
     .interaction-guide {
-      position: absolute;
-      bottom: 40px;
-      left: 50%;
-      transform: translateX(-50%);
-      background: rgba(0, 0, 0, 0.85);
-      border: 1px solid var(--mint);
-      padding: 12px 28px;
-      font-size: 0.8rem;
-      font-weight: 700;
-      color: #FFF;
-      box-shadow: 0 0 15px var(--mint-glow);
-      letter-spacing: 1px;
-      pointer-events: none;
-      z-index: 5;
+      position: absolute; bottom: 40px; left: 50%; transform: translateX(-50%);
+      background: rgba(0, 0, 0, 0.85); border: 1px solid var(--mint); padding: 12px 28px;
+      font-size: 0.8rem; font-weight: 700; color: #FFF; box-shadow: 0 0 15px var(--mint-glow);
+      letter-spacing: 1px; pointer-events: none; z-index: 5;
     }
 
-    /* 노트북 역사다리꼴 3D 원근 투영 렌더링 */
+    /* 노트북 영상 재생 */
     .laptop-screen-container {
-      position: absolute;
-      top: 13.9%;
-      left: 35.6%;
-      width: 25.1%;
-      height: 26.2%;
-      z-index: 8;
-      pointer-events: auto;
-      background: #000;
-      perspective: 350px;
-      transform-style: preserve-3d;
+      position: absolute; top: 13.9%; left: 35.6%; width: 25.1%; height: 26.2%;
+      z-index: 8; pointer-events: auto; background: #000; perspective: 350px; transform-style: preserve-3d;
     }
-
     .laptop-video {
-      position: relative;
-      width: 100%;
-      height: 100%;
-      object-fit: cover;
-      display: block;
-      z-index: 1;
-      transform: 
-        rotateX(26deg) 
-        rotateY(-2.3deg) 
-        rotateZ(0.6deg) 
-        skewX(-0.5deg);
-      transform-origin: bottom center;
-      border-radius: 4px;
+      position: relative; width: 100%; height: 100%; object-fit: cover; display: block; z-index: 1;
+      transform: rotateX(26deg) rotateY(-2.3deg) rotateZ(0.6deg) skewX(-0.5deg);
+      transform-origin: bottom center; border-radius: 4px;
     }
-
     .laptop-screen-container::after {
-      content: '';
-      position: absolute;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
+      content: ''; position: absolute; top: 0; left: 0; width: 100%; height: 100%;
       background: linear-gradient(135deg, rgba(255, 255, 255, 0.1) 0%, rgba(255, 255, 255, 0) 60%, rgba(0, 0, 0, 0.3) 100%);
-      pointer-events: none;
-      z-index: 3;
-      transform: 
-        rotateX(26deg) 
-        rotateY(-2.3deg) 
-        rotateZ(0.6deg) 
-        skewX(-0.5deg);
+      pointer-events: none; z-index: 3;
+      transform: rotateX(26deg) rotateY(-2.3deg) rotateZ(0.6deg) skewX(-0.5deg);
       transform-origin: bottom center;
     }
 
-    /* 대화형 핫스팟 영역 */
-    .hotspot-target {
-      position: absolute;
-      cursor: pointer;
-      z-index: 10;
-      transform: translate(-50%, -50%);
-    }
-
-    .ratio-4-3-box {
-      position: relative;
-      width: 100%;
-      padding-top: 75%;
-    }
-
+    /* 핫스팟 및 네온 HUD */
+    .hotspot-target { position: absolute; cursor: pointer; z-index: 10; transform: translate(-50%, -50%); }
+    .ratio-4-3-box { position: relative; width: 100%; padding-top: 75%; }
     .hud-overlay {
-      position: absolute;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      border: 2px solid var(--mint);
-      box-shadow: inset 0 0 25px rgba(0, 255, 204, 0.15), 0 0 20px var(--mint-glow);
-      opacity: 0;
-      transition: opacity 0.2s ease;
-      display: flex;
-      flex-direction: column;
-      justify-content: space-between;
-      padding: 12px;
-      overflow: hidden;
-      background: linear-gradient(180deg, rgba(0, 255, 204, 0.02) 0%, rgba(0, 255, 204, 0.06) 100%);
+      position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+      border: 2px solid var(--mint); box-shadow: inset 0 0 25px rgba(0, 255, 204, 0.15), 0 0 20px var(--mint-glow);
+      opacity: 0; transition: opacity 0.2s ease; display: flex; flex-direction: column; justify-content: space-between;
+      padding: 12px; overflow: hidden; background: linear-gradient(180deg, rgba(0, 255, 204, 0.02) 0%, rgba(0, 255, 204, 0.06) 100%);
     }
-
-    .hotspot-target:hover .hud-overlay {
-      opacity: 1;
-      animation: glitch 0.3s linear;
-    }
-
-    .hud-header {
-      font-size: 0.75rem;
-      font-weight: 700;
-      color: var(--mint);
-      letter-spacing: 1.5px;
-      border-bottom: 1px solid rgba(0, 255, 204, 0.3);
-      padding-bottom: 6px;
-      display: flex;
-      justify-content: space-between;
-      text-shadow: 0 0 5px var(--mint);
-    }
-
-    .hud-footer {
-      font-size: 0.65rem;
-      color: #A0FCE9;
-      display: flex;
-      justify-content: space-between;
-      border-top: 1px solid rgba(0, 255, 204, 0.3);
-      padding-top: 6px;
-    }
-
-    .hud-overlay::before {
-      content: '';
-      position: absolute;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 3px;
-      background: var(--mint);
-      box-shadow: 0 0 12px var(--mint), 0 0 4px #FFF;
-      animation: scan-line 2.5s linear infinite;
-    }
-
-    .crosshair {
-      position: absolute;
-      top: 50%;
-      left: 50%;
-      width: 20px;
-      height: 20px;
-      transform: translate(-50%, -50%);
-      pointer-events: none;
-    }
-    .crosshair::before, .crosshair::after {
-      content: '';
-      position: absolute;
-      background: rgba(0, 255, 204, 0.4);
-    }
+    .hotspot-target:hover .hud-overlay { opacity: 1; animation: glitch 0.3s linear; }
+    .hud-header { font-size: 0.75rem; font-weight: 700; color: var(--mint); letter-spacing: 1.5px; border-bottom: 1px solid rgba(0, 255, 204, 0.3); padding-bottom: 6px; display: flex; justify-content: space-between; text-shadow: 0 0 5px var(--mint); }
+    .hud-footer { font-size: 0.65rem; color: #A0FCE9; display: flex; justify-content: space-between; border-top: 1px solid rgba(0, 255, 204, 0.3); padding-top: 6px; }
+    .hud-overlay::before { content: ''; position: absolute; top: 0; left: 0; width: 100%; height: 3px; background: var(--mint); box-shadow: 0 0 12px var(--mint), 0 0 4px #FFF; animation: scan-line 2.5s linear infinite; }
+    .crosshair { position: absolute; top: 50%; left: 50%; width: 20px; height: 20px; transform: translate(-50%, -50%); pointer-events: none; }
+    .crosshair::before, .crosshair::after { content: ''; position: absolute; background: rgba(0, 255, 204, 0.4); }
     .crosshair::before { top: 9px; left: 0; width: 20px; height: 2px; }
     .crosshair::after { top: 0; left: 9px; width: 2px; height: 20px; }
-
-    .hud-corner {
-      position: absolute;
-      width: 12px;
-      height: 12px;
-      border: 3px solid #FFF;
-    }
+    .hud-corner { position: absolute; width: 12px; height: 12px; border: 3px solid #FFF; }
     .c-tl { top: -3px; left: -3px; border-right: none; border-bottom: none; }
     .c-tr { top: -3px; right: -3px; border-left: none; border-bottom: none; }
     .c-bl { bottom: -3px; left: -3px; border-right: none; border-top: none; }
     .c-br { bottom: -3px; right: -3px; border-left: none; border-top: none; }
+    
+    @keyframes scan-line { 0% { top: 0%; } 50% { top: 100%; } 100% { top: 0%; } }
+    @keyframes glitch {
+      0% { transform: skew(0deg); opacity: 0.3; }
+      20% { transform: skew(4deg) scale(1.05); opacity: 0.8; }
+      40% { transform: skew(-4deg); opacity: 0.5; }
+      60% { transform: skew(2deg) scale(0.98); opacity: 0.9; }
+      80% { transform: skew(-1deg); opacity: 0.7; }
+      100% { transform: skew(0deg); opacity: 1; }
+    }
 
-    /* 책상 레이아웃 좌표 매핑 */
     #spot-tv { top: 29%; left: 12.5%; width: 215px; }
     #spot-figure { top: 46%; left: 27%; width: 120px; }
     #spot-smartphone { top: 71%; left: 21.5%; width: 130px; }
@@ -298,204 +154,107 @@
     #spot-notebook { top: 62%; left: 77%; width: 200px; }
 
     /* --------------------------------------------------
-       [단일 영상] 평면 뷰 (기존 팝업 UI)
+       [핵심 변경] 완전히 투명하고 개방된 허공 홀로그램 뷰
        -------------------------------------------------- */
-    .cyber-popup {
-      position: absolute;
-      width: 660px;
-      background: var(--glass-bg);
-      backdrop-filter: blur(15px);
-      border: 1px solid var(--mint);
-      box-shadow: 0 0 35px rgba(0, 255, 204, 0.2);
-      display: none;
-      flex-direction: column;
-      z-index: 1000;
-      cursor: move;
-    }
-
-    .popup-header {
-      padding: 14px 20px;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      border-bottom: 1px solid rgba(0, 255, 204, 0.3);
-      background: rgba(0, 255, 204, 0.03);
-    }
-
-    .popup-title {
-      font-weight: 700;
-      font-size: 0.9rem;
-      color: #FFF;
-      letter-spacing: 1.5px;
-      text-shadow: 0 0 5px var(--mint);
-    }
-
-    .popup-close {
-      background: none;
-      border: none;
-      font-size: 1.2rem;
-      color: var(--mint);
-      cursor: pointer;
-      text-shadow: 0 0 5px var(--mint);
-    }
-
-    .popup-body-single {
-      position: relative;
-      background: #000;
-      aspect-ratio: 16 / 9;
-      overflow: hidden;
-      width: 100%;
-    }
-
-    .video-wrapper iframe {
-      position: absolute;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-    }
-
-    .video-fallback {
-      display: none;
-      position: absolute;
-      top: 0; left: 0; width: 100%; height: 100%;
-      flex-direction: column;
-      align-items: center; justify-content: center;
-      background: #000; text-align: center; gap: 14px;
-    }
-    .video-fallback.show { display: flex; }
-    .video-fallback p { color: var(--mint); font-size: 0.85rem; opacity: 0.85; }
-    .video-fallback a { padding: 10px 20px; border: 1px solid var(--mint); color: var(--mint); text-decoration: none; border-radius: 4px; }
-    .video-fallback a:hover { background: var(--mint); color: #000; }
-
-    /* --------------------------------------------------
-       [다중 영상] 허공에 띄워진 V자 3D 스테이지 (이미지 오른쪽 반영)
-       -------------------------------------------------- */
-    .multi-stage-overlay {
+    .hologram-overlay {
       position: fixed;
-      top: 0;
-      left: 0;
-      width: 100vw;
-      height: 100vh;
-      /* 책상이 보이도록 옅은 그림자막만 추가 */
-      background: rgba(0, 0, 0, 0.4); 
-      z-index: 1500;
+      top: 0; left: 0; width: 100vw; height: 100vh;
+      background: rgba(0, 0, 0, 0.4); /* 책상이 살짝 비치는 반투명 배경 */
+      z-index: 2000;
       display: none;
       align-items: center;
       justify-content: center;
-      perspective: 1200px; /* 깊은 원근감 부여 */
+      perspective: 1200px;
     }
-    .multi-stage-overlay.show {
-      display: flex;
+    .hologram-overlay.show { display: flex; }
+
+    /* 단일 영상 박스 (평면) */
+    .holo-single {
+      display: none;
+      width: 65vw;
+      max-width: 900px;
+      aspect-ratio: 16 / 9;
+      background: #000;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.8);
+      position: relative;
+    }
+    .holo-single.show { display: block; }
+    
+    .holo-single iframe {
+      width: 100%;
+      height: 100%;
+      border: none;
+      display: block;
     }
 
-    /* 패널들을 V자로 정렬하는 컨테이너 */
-    .multi-panels-container {
-      display: flex;
+    /* 다중 영상 박스 (V자 형태) */
+    .holo-multi {
+      display: none;
       flex-direction: row;
-      gap: 60px; /* 두 영상 사이의 간격 */
+      gap: 5vw; /* 두 화면 사이 간격 */
       align-items: center;
       justify-content: center;
       transform-style: preserve-3d;
+      width: 100%;
     }
+    .holo-multi.show { display: flex; }
 
-    /* 3D 홀로그램 카드 (영상 썸네일) */
-    .stage-vpanel {
-      width: 380px; /* 단일 팝업창보다 약간 작게 2개를 띄움 */
-      background: rgba(13, 14, 18, 0.95);
-      border: 1px solid var(--mint);
-      box-shadow: 0 0 30px rgba(0, 255, 204, 0.2);
+    /* 개별 영상 화면 (UI/테두리 전부 제거) */
+    .holo-panel {
+      width: 38vw;
+      max-width: 600px;
+      aspect-ratio: 16 / 9;
+      background: #000;
+      box-shadow: 0 15px 50px rgba(0, 0, 0, 0.6);
       cursor: pointer;
-      display: flex;
-      flex-direction: column;
-      transition: transform 0.4s cubic-bezier(0.25, 0.8, 0.25, 1), box-shadow 0.4s, border-color 0.4s;
+      position: relative;
+      transition: transform 0.4s cubic-bezier(0.25, 0.8, 0.25, 1), box-shadow 0.4s;
     }
 
-    /* 왼쪽 패널은 오른쪽을 바라보도록 틸트 */
-    .stage-vpanel.tilt-left {
-      transform: rotateY(28deg);
-    }
+    /* 왼쪽/오른쪽 각도 */
+    .holo-panel.tilt-left { transform: rotateY(25deg); }
+    .holo-panel.tilt-right { transform: rotateY(-25deg); }
 
-    /* 오른쪽 패널은 왼쪽을 바라보도록 틸트 */
-    .stage-vpanel.tilt-right {
-      transform: rotateY(-28deg);
-    }
-
-    /* 마우스 호버 시 원근감을 풀며 튀어나옴 */
-    .stage-vpanel:hover {
-      border-color: #FFF;
-      box-shadow: 0 0 50px rgba(0, 255, 204, 0.5);
-      transform: rotateY(0deg) scale(1.08) translateZ(50px);
+    /* 호버 시 튀어나오는 연출 */
+    .holo-panel:hover {
+      transform: rotateY(0deg) scale(1.05) translateZ(40px);
+      box-shadow: 0 0 40px rgba(0, 255, 204, 0.3);
       z-index: 10;
     }
 
-    .stage-vpanel-header {
-      padding: 10px 16px;
-      border-bottom: 1px solid rgba(0, 255, 204, 0.2);
-      background: rgba(0, 255, 204, 0.03);
-    }
-    .stage-vpanel-title {
-      font-weight: 700;
-      font-size: 0.85rem;
-      color: #FFF;
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-      display: block;
-      text-shadow: 0 0 5px var(--mint);
-    }
-
-    .stage-vpanel-body {
-      position: relative;
-      background: #000;
-      aspect-ratio: 16 / 9;
-      overflow: hidden;
-    }
-    .stage-vpanel-body img {
+    .holo-panel img {
       width: 100%;
       height: 100%;
       object-fit: cover;
-      opacity: 0.6;
-      transition: opacity 0.2s;
+      opacity: 0.7;
+      transition: opacity 0.3s;
     }
-    .stage-vpanel:hover .stage-vpanel-body img { opacity: 0.95; }
+    .holo-panel:hover img { opacity: 1; }
 
-    .stage-vpanel-play {
+    /* 깔끔한 재생 아이콘만 표시 */
+    .holo-play {
       position: absolute;
       inset: 0;
       display: flex;
       align-items: center;
       justify-content: center;
+      pointer-events: none;
     }
-    .stage-vpanel-play::after {
+    .holo-play::after {
       content: "";
-      width: 50px; height: 50px;
+      width: 60px; height: 60px;
       border-radius: 50%;
-      background: rgba(0,0,0,0.6);
-      border: 2px solid var(--mint);
-      box-shadow: 0 0 15px var(--mint-glow);
-      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='20' height='20' viewBox='0 0 24 24' fill='%2300FFCC'%3E%3Cpath d='M8 5v14l11-7z'/%3E%3C/svg%3E");
+      background: rgba(0,0,0,0.5);
+      border: 2px solid rgba(255,255,255,0.8);
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='%23FFFFFF'%3E%3Cpath d='M8 5v14l11-7z'/%3E%3C/svg%3E");
       background-repeat: no-repeat;
-      background-position: 56% center;
+      background-position: 55% center;
+      transition: border-color 0.3s, box-shadow 0.3s;
     }
-
-    /* 3D 스테이지를 닫는 취소 버튼 */
-    .close-stage-btn {
-      position: absolute;
-      top: 30px;
-      right: 40px;
-      background: none;
-      border: none;
-      color: var(--mint);
-      font-size: 2rem;
-      cursor: pointer;
-      text-shadow: 0 0 10px var(--mint-glow);
-      transition: transform 0.2s;
+    .holo-panel:hover .holo-play::after {
+      border-color: var(--mint);
+      box-shadow: 0 0 15px var(--mint-glow);
     }
-    .close-stage-btn:hover {
-      transform: scale(1.2);
-    }
-
   </style>
 </head>
 <body>
@@ -515,7 +274,7 @@
       </video>
     </div>
 
-    <div class="hotspot-target" id="spot-tv" data-type="multi-video" data-title="⚡ COMMERCIAL ARCHIVE">
+    <div class="hotspot-target" id="spot-tv" data-type="multi-video">
       <div class="ratio-4-3-box">
         <div class="hud-overlay">
           <div class="hud-corner c-tl"></div><div class="hud-corner c-tr"></div><div class="hud-corner c-bl"></div><div class="hud-corner c-br"></div>
@@ -526,7 +285,7 @@
       </div>
     </div>
 
-    <div class="hotspot-target" id="spot-figure" data-type="video" data-title="🎀 LOCK_ON: GOODS" data-video="https://www.youtube-nocookie.com/embed/dQw4w9WgXcQ?autoplay=1&rel=0">
+    <div class="hotspot-target" id="spot-figure" data-type="video" data-video="https://www.youtube-nocookie.com/embed/dQw4w9WgXcQ?autoplay=1&rel=0">
       <div class="ratio-4-3-box">
         <div class="hud-overlay">
           <div class="hud-corner c-tl"></div><div class="hud-corner c-tr"></div><div class="hud-corner c-bl"></div><div class="hud-corner c-br"></div>
@@ -537,7 +296,7 @@
       </div>
     </div>
 
-    <div class="hotspot-target" id="spot-smartphone" data-type="video" data-title="📱 LOCK_ON: SHORTS" data-video="https://www.youtube-nocookie.com/embed/tQzRMOwtmP8?autoplay=1&rel=0">
+    <div class="hotspot-target" id="spot-smartphone" data-type="video" data-video="https://www.youtube-nocookie.com/embed/tQzRMOwtmP8?autoplay=1&rel=0">
       <div class="ratio-4-3-box">
         <div class="hud-overlay">
           <div class="hud-corner c-tl"></div><div class="hud-corner c-tr"></div><div class="hud-corner c-bl"></div><div class="hud-corner c-br"></div>
@@ -548,7 +307,7 @@
       </div>
     </div>
 
-    <div class="hotspot-target" id="spot-voodoo" data-type="video" data-title="👀 LOCK_ON: HORROR" data-video="https://www.youtube-nocookie.com/embed/tQzRMOwtmP8?autoplay=1&rel=0">
+    <div class="hotspot-target" id="spot-voodoo" data-type="video" data-video="https://www.youtube-nocookie.com/embed/tQzRMOwtmP8?autoplay=1&rel=0">
       <div class="ratio-4-3-box">
         <div class="hud-overlay">
           <div class="hud-corner c-tl"></div><div class="hud-corner c-tr"></div><div class="hud-corner c-bl"></div><div class="hud-corner c-br"></div>
@@ -572,50 +331,33 @@
 
     <div class="interaction-guide">System Ready. Select an object to initiate streaming bridge.</div>
 
-    <div class="cyber-popup" id="videoPopup">
-      <div class="popup-header" id="popupHeader">
-        <span class="popup-title" id="popupTitle">QUANTUM INTERFACE LINK</span>
-        <button class="popup-close" onclick="closePopup()">✕</button>
+    <div class="hologram-overlay" id="hologramOverlay">
+      
+      <div class="holo-single" id="holoSingle">
+        <div id="popupIframe"></div>
       </div>
-      <div class="popup-body-single" id="popupBodySingle">
-        <div class="video-wrapper">
-          <div id="popupIframe"></div>
-          <div class="video-fallback" id="videoFallback">
-            <p>이 영상은 소유자가 외부 사이트 재생(임베드)을<br>허용하지 않아 여기서 재생할 수 없습니다. (오류 153)</p>
-            <a id="videoFallbackLink" href="#" target="_blank" rel="noopener">▶ 유튜브에서 바로 보기</a>
-          </div>
-        </div>
-      </div>
-    </div>
 
-    <div class="multi-stage-overlay" id="multiStageOverlay">
-      <button class="close-stage-btn" onclick="closeMultiStage()">✕</button>
-      <div class="multi-panels-container" id="multiPanelsContainer"></div>
+      <div class="holo-multi" id="holoMulti"></div>
+
     </div>
 
   </div>
 
   <script src="https://www.youtube.com/iframe_api"></script>
   <script>
-    let topZIndex = 100;
-    const popup = document.getElementById('videoPopup');
-    const popupTitle = document.getElementById('popupTitle');
-    const popupBodySingle = document.getElementById('popupBodySingle');
-    const multiStageOverlay = document.getElementById('multiStageOverlay');
-    const multiPanelsContainer = document.getElementById('multiPanelsContainer');
-    
-    const videoFallback = document.getElementById('videoFallback');
-    const videoFallbackLink = document.getElementById('videoFallbackLink');
+    const hologramOverlay = document.getElementById('hologramOverlay');
+    const holoSingle = document.getElementById('holoSingle');
+    const holoMulti = document.getElementById('holoMulti');
     const introOverlay = document.getElementById('introOverlay');
 
     let ytPlayer = null;
     let ytApiReady = false;
     let pendingVideoId = null;
 
-    // 텔레비전에 들어갈 다중 영상 데이터
+    // 다중 영상(TV) 데이터
     const tvSlides = [
-      { id: "tQzRMOwtmP8", tag: "⚡", title: "AD CAMPAIGN 01" },
-      { id: "ghQFJoDIGMo", tag: "⚡", title: "AD CAMPAIGN 02" }
+      { id: "tQzRMOwtmP8" },
+      { id: "ghQFJoDIGMo" }
     ];
 
     function extractVideoId(url) {
@@ -636,55 +378,40 @@
         pendingVideoId = videoId;
         return;
       }
-      videoFallback.classList.remove('show');
-      videoFallbackLink.href = `https://www.youtube.com/watch?v=${videoId}`;
-
       if (ytPlayer && typeof ytPlayer.loadVideoById === 'function') {
         ytPlayer.loadVideoById(videoId);
         return;
       }
-
       ytPlayer = new YT.Player('popupIframe', {
         width: '100%',
         height: '100%',
         videoId: videoId,
         host: 'https://www.youtube-nocookie.com',
-        playerVars: { autoplay: 1, rel: 0 },
-        events: {
-          onError: () => videoFallback.classList.add('show')
-        }
+        playerVars: { autoplay: 1, rel: 0 }
       });
     }
 
-    // 허공에 V자 형태로 3D 패널을 렌더링하는 함수
-    function buildMultiStage(titleBase) {
-      multiPanelsContainer.innerHTML = '';
-      
+    // 허공의 V자 패널 생성
+    function buildMultiPanels() {
+      holoMulti.innerHTML = '';
       tvSlides.forEach((slide, idx) => {
         const panel = document.createElement('div');
+        panel.className = idx % 2 === 0 ? 'holo-panel tilt-left' : 'holo-panel tilt-right';
         
-        // 인덱스 0번은 왼쪽 틸트, 1번은 오른쪽 틸트로 V자 배열 완성
-        panel.className = idx % 2 === 0 ? 'stage-vpanel tilt-left' : 'stage-vpanel tilt-right';
-
         panel.innerHTML = `
-          <div class="stage-vpanel-header">
-            <span class="stage-vpanel-title">${slide.tag} ${slide.title}</span>
-          </div>
-          <div class="stage-vpanel-body">
-            <img src="https://img.youtube.com/vi/${slide.id}/hqdefault.jpg" alt="${slide.title}">
-            <div class="stage-vpanel-play"></div>
-          </div>
+          <img src="https://img.youtube.com/vi/${slide.id}/hqdefault.jpg" alt="thumbnail">
+          <div class="holo-play"></div>
         `;
 
-        // 3D 카드 클릭 시, 홀로그램 스테이지를 닫고 평면 모달창에서 영상 재생
+        // 썸네일 클릭 시 -> 3D V자 화면을 숨기고, 가운데 평면 비디오 띄움
         panel.addEventListener('click', (e) => {
           e.stopPropagation();
-          closeMultiStage();
-          openPopupFrame(`${titleBase} // ${slide.title}`);
+          holoMulti.classList.remove('show');
+          holoSingle.classList.add('show');
           loadVideo(slide.id);
         });
 
-        multiPanelsContainer.appendChild(panel);
+        holoMulti.appendChild(panel);
       });
     }
 
@@ -697,20 +424,22 @@
     document.querySelectorAll('.hotspot-target').forEach(spot => {
       spot.addEventListener('click', () => {
         const type = spot.getAttribute('data-type');
-        const title = spot.getAttribute('data-title');
         
         if (type === 'video') {
-          // 영상 1개: 기존 사이버 팝업 렌더링
-          popupBodySingle.classList.add('show');
-          openPopupFrame(title);
+          // 단일 영상: 평면 박스 띄우기
+          holoMulti.classList.remove('show');
+          holoSingle.classList.add('show');
+          hologramOverlay.classList.add('show');
           
           const videoId = extractVideoId(spot.getAttribute('data-video'));
           if (videoId) loadVideo(videoId);
         } 
         else if (type === 'multi-video') {
-          // 영상 여러 개: 허공에 V자형 3D 스테이지 렌더링
-          buildMultiStage(title);
-          multiStageOverlay.classList.add('show');
+          // 다중 영상: V자 3D 박스 띄우기
+          holoSingle.classList.remove('show');
+          buildMultiPanels();
+          holoMulti.classList.add('show');
+          hologramOverlay.classList.add('show');
         } 
         else if (type === 'link') {
           window.open(spot.getAttribute('data-url'), '_blank');
@@ -718,60 +447,26 @@
       });
     });
 
-    // 3D 다중 영상 스테이지 닫기
-    function closeMultiStage() {
-      multiStageOverlay.classList.remove('show');
-    }
-
-    // 배경 클릭 시 3D 스테이지 닫기 기능
-    multiStageOverlay.addEventListener('click', (e) => {
-      if (e.target === multiStageOverlay || e.target === multiPanelsContainer) {
-        closeMultiStage();
+    // 배경 클릭 시 모든 영상/창 닫기
+    hologramOverlay.addEventListener('click', (e) => {
+      // 3D 썸네일 박스나 비디오 화면 자체를 클릭한 게 아니라면 닫기
+      if (e.target === hologramOverlay || e.target === holoMulti) {
+        hologramOverlay.classList.remove('show');
+        holoSingle.classList.remove('show');
+        holoMulti.classList.remove('show');
+        
+        if (ytPlayer && typeof ytPlayer.stopVideo === 'function') {
+          ytPlayer.stopVideo();
+        }
       }
     });
 
-    function openPopupFrame(title) {
-      popupTitle.innerText = title;
-      popup.style.display = 'flex';
-      popup.style.zIndex = ++topZIndex;
-
-      // 중앙 정렬
-      popup.style.left = `${(window.innerWidth - 660) / 2}px`;
-      popup.style.top = `${(window.innerHeight - popup.offsetHeight) / 2}px`;
-    }
-
-    function closePopup() {
-      popup.style.display = 'none';
-      videoFallback.classList.remove('show');
-      popupBodySingle.classList.remove('show');
-      
-      if (ytPlayer && typeof ytPlayer.stopVideo === 'function') {
-        ytPlayer.stopVideo();
+    // ESC 키를 눌러도 닫히도록 편의성 추가
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape' && hologramOverlay.classList.contains('show')) {
+        hologramOverlay.click();
       }
-    }
-
-    // 모달창 드래그 시스템
-    let isDragging = false;
-    let startX, startY, initialX, initialY;
-    const popupHeader = document.getElementById('popupHeader');
-
-    popupHeader.addEventListener('mousedown', (e) => {
-      if(e.target.classList.contains('popup-close')) return;
-      isDragging = true;
-      popup.style.zIndex = ++topZIndex;
-      startX = e.clientX;
-      startY = e.clientY;
-      initialX = popup.offsetLeft;
-      initialY = popup.offsetTop;
     });
-
-    document.addEventListener('mousemove', (e) => {
-      if (!isDragging) return;
-      popup.style.left = `${initialX + (e.clientX - startX)}px`;
-      popup.style.top = `${initialY + (e.clientY - startY)}px`;
-    });
-
-    document.addEventListener('mouseup', () => { isDragging = false; });
   </script>
 </body>
 </html>
