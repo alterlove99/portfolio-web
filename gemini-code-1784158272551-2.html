@@ -10,10 +10,6 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700;900&family=Noto+Sans+KR:wght@500;700;900&display=swap" rel="stylesheet">
 
-  <!-- lightGallery (멀티 영상 슬라이드용) -->
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/lightgallery@2.7.2/css/lightgallery.min.css">
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/lightgallery@2.7.2/css/lg-video.min.css">
-
   <style>
     :root {
       --mint: #00FFCC;
@@ -151,7 +147,7 @@
       z-index: 5;
     }
 
-    /* 대화형 핫스팟 영역 - 4:3 비율 고정 컨테이너 */
+    /* 대화형 핫스팟 영역 */
     .hotspot-target {
       position: absolute;
       cursor: pointer;
@@ -165,7 +161,6 @@
       padding-top: 75%;
     }
 
-    /* 네온 민트 HUD 오버레이 */
     .hud-overlay {
       position: absolute;
       top: 0;
@@ -258,10 +253,10 @@
     #spot-voodoo { top: 40%; left: 89%; width: 180px; }
     #spot-notebook { top: 62%; left: 77%; width: 200px; }
 
-    /* 민트 네온 매트릭스 팝업 */
+    /* 민트 네온 매트릭스 통합 팝업 UI */
     .cyber-popup {
       position: absolute;
-      width: 560px;
+      width: 580px; /* 내부 공간 확보를 위해 넓이 소폭 상향 */
       background: var(--glass-bg);
       backdrop-filter: blur(15px);
       border: 1px solid var(--mint);
@@ -299,22 +294,19 @@
     }
 
     .popup-body {
+      position: relative;
       background: #000;
-      cursor: default;
+      aspect-ratio: 16 / 9;
+      overflow: hidden;
     }
 
     .video-wrapper {
-      position: relative;
-      padding-bottom: 56.25%;
-      height: 0;
-    }
-
-    .video-wrapper iframe {
-      position: absolute;
-      top: 0;
-      left: 0;
+      display: none;
       width: 100%;
       height: 100%;
+    }
+    .video-wrapper.show {
+      display: block;
     }
 
     .video-fallback {
@@ -332,10 +324,7 @@
       text-align: center;
       padding: 20px;
     }
-
-    .video-fallback.show {
-      display: flex;
-    }
+    .video-fallback.show { display: flex; }
 
     .video-fallback p {
       color: var(--mint);
@@ -355,19 +344,111 @@
       letter-spacing: 0.05em;
       transition: background 0.2s, color 0.2s;
     }
-
     .video-fallback a:hover {
       background: var(--mint);
       color: #000;
     }
 
-    /* lightGallery 백드롭 톤 (사이버 테마 매칭) */
-    .lg-backdrop { background-color: rgba(5, 6, 8, 0.96); }
-    .lg-toolbar .lg-icon { color: var(--mint); }
-    .lg-sub-html h4 {
-      color: var(--mint);
-      font-family: 'Orbitron', sans-serif;
-      letter-spacing: 0.03em;
+    /* --------------------------------------------------
+       [신규/개선] 팝업창 내장형 3D 멀티 비디오 셀렉터 뷰
+       -------------------------------------------------- */
+    .multi-panels-wrapper {
+      display: none;
+      width: 100%;
+      height: 100%;
+      perspective: 800px;
+      background: radial-gradient(circle at center, #141b29 0%, #000000 100%);
+    }
+    .multi-panels-wrapper.show {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .panel-container-3d {
+      position: relative;
+      width: 100%;
+      height: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transform-style: preserve-3d;
+    }
+
+    /* 창 내부에서 원근감을 갖는 3D 비디오 미니어처 카드 */
+    .popup-vpanel {
+      position: absolute;
+      width: 200px;
+      background: rgba(20, 24, 35, 0.95);
+      border: 1px solid var(--mint);
+      box-shadow: 0 0 20px rgba(0, 255, 204, 0.15);
+      cursor: pointer;
+      display: flex;
+      flex-direction: column;
+      backface-visibility: hidden;
+      transition: transform 0.3s cubic-bezier(0.25, 0.8, 0.25, 1), box-shadow 0.3s, border-color 0.3s;
+    }
+
+    /* 호버 시 앞으로 튀어나오며 왜곡 상쇄 */
+    .popup-vpanel:hover {
+      border-color: #FFF;
+      box-shadow: 0 0 30px rgba(0, 255, 204, 0.5);
+      transform: translateX(var(--hover-offset-x)) translateZ(40px) rotateY(0deg) !important;
+      z-index: 50;
+    }
+
+    .popup-vpanel-header {
+      padding: 6px 10px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1px solid rgba(0, 255, 204, 0.2);
+      background: rgba(0, 255, 204, 0.03);
+    }
+
+    .popup-vpanel-title {
+      font-weight: 700;
+      font-size: 0.65rem;
+      color: #FFF;
+      letter-spacing: 1px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .popup-vpanel-body {
+      position: relative;
+      background: #000;
+      aspect-ratio: 16 / 9;
+      overflow: hidden;
+    }
+
+    .popup-vpanel-body img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      opacity: 0.6;
+      transition: opacity 0.2s;
+    }
+    .popup-vpanel:hover .popup-vpanel-body img { opacity: 0.95; }
+
+    .popup-vpanel-play {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .popup-vpanel-play::after {
+      content: "";
+      width: 36px; height: 36px;
+      border-radius: 50%;
+      background: rgba(0,0,0,0.6);
+      border: 1px solid var(--mint);
+      box-shadow: 0 0 10px var(--mint-glow);
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='%2300FFCC'%3E%3Cpath d='M8 5v14l11-7z'/%3E%3C/svg%3E");
+      background-repeat: no-repeat;
+      background-position: 58% center;
     }
   </style>
 </head>
@@ -437,16 +518,6 @@
       </div>
     </div>
 
-    <!-- 멀티 영상 슬라이드용 (화면에 안 보이고, TV hotspot 클릭 시 프로그래밍 방식으로 열림) -->
-    <div id="tvGallery" style="display:none">
-      <a data-lg-size="1280-720"
-         data-src="https://www.youtube.com/watch?v=tQzRMOwtmP8"
-         data-sub-html="<h4>⚡ COMMERCIAL · PART 1</h4>"></a>
-      <a data-lg-size="1280-720"
-         data-src="https://www.youtube.com/watch?v=ghQFJoDIGMo"
-         data-sub-html="<h4>⚡ COMMERCIAL · PART 2</h4>"></a>
-    </div>
-
     <div class="interaction-guide">System Ready. Select an object to initiate streaming bridge.</div>
 
     <div class="cyber-popup" id="videoPopup">
@@ -455,33 +526,45 @@
         <button class="popup-close" onclick="closePopup()">✕</button>
       </div>
       <div class="popup-body">
-        <div class="video-wrapper">
+        
+        <div class="video-wrapper" id="popupVideoWrapper">
           <div id="popupIframe"></div>
           <div class="video-fallback" id="videoFallback">
             <p>이 영상은 소유자가 외부 사이트 재생(임베드)을<br>허용하지 않아 여기서 재생할 수 없습니다. (오류 153)</p>
             <a id="videoFallbackLink" href="#" target="_blank" rel="noopener">▶ 유튜브에서 바로 보기</a>
           </div>
         </div>
+
+        <div class="multi-panels-wrapper" id="popupMultiWrapper">
+          <div class="panel-container-3d" id="popupPanelContainer"></div>
+        </div>
+
       </div>
     </div>
 
   </div>
 
   <script src="https://www.youtube.com/iframe_api"></script>
-  <script src="https://cdn.jsdelivr.net/npm/lightgallery@2.7.2/lightgallery.umd.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/lightgallery@2.7.2/plugins/video/lg-video.umd.min.js"></script>
   <script>
     let topZIndex = 100;
     const popup = document.getElementById('videoPopup');
     const popupTitle = document.getElementById('popupTitle');
+    const popupVideoWrapper = document.getElementById('popupVideoWrapper');
+    const popupMultiWrapper = document.getElementById('popupMultiWrapper');
+    const popupPanelContainer = document.getElementById('popupPanelContainer');
     const videoFallback = document.getElementById('videoFallback');
     const videoFallbackLink = document.getElementById('videoFallbackLink');
     const introOverlay = document.getElementById('introOverlay');
 
-    // 유튜브 IFrame Player API 상태
     let ytPlayer = null;
     let ytApiReady = false;
     let pendingVideoId = null;
+
+    // 복수 데이터 소스 풀 (TV용)
+    const tvSlides = [
+      { id: "tQzRMOwtmP8", tag: "⚡", title: "COMMERCIAL ARCHIVE 01" },
+      { id: "ghQFJoDIGMo", tag: "⚡", title: "COMMERCIAL ARCHIVE 02" }
+    ];
 
     function extractVideoId(url) {
       const match = url.match(/embed\/([a-zA-Z0-9_-]+)/);
@@ -516,27 +599,52 @@
         host: 'https://www.youtube-nocookie.com',
         playerVars: { autoplay: 1, rel: 0 },
         events: {
-          onError: onPlayerError
+          onError: () => videoFallback.classList.add('show')
         }
       });
     }
 
-    // 오류 코드 2: 잘못된 파라미터, 5: HTML5 플레이어 오류
-    // 100: 삭제/비공개 영상, 101/150: 임베드(외부 재생) 금지 — 이게 153 에러의 실제 원인
-    function onPlayerError(event) {
-      videoFallback.classList.add('show');
-    }
+    /* --------------------------------------------------
+       [개선] 팝업 내부용 콤팩트 3D 정렬 패널 생성기
+       -------------------------------------------------- */
+    function buildPopup3DPanels(titleBase) {
+      popupPanelContainer.innerHTML = '';
+      const count = tvSlides.length;
+      
+      tvSlides.forEach((slide, idx) => {
+        // 영상 개수에 맞춰 좌우 각도와 중심 분할 계산 (-20도 ~ +20도 왜곡 정렬)
+        const angle = count === 1 ? 0 : -20 + (40 * idx / (count - 1));
+        const offsetX = count === 1 ? 0 : -100 + (200 * idx / (count - 1));
+        
+        const panel = document.createElement('div');
+        panel.className = 'popup-vpanel';
+        
+        // CSS 커스텀 변수를 주어 호버 시 자연스럽게 앞으로 튕겨 나오도록 유도
+        panel.style.setProperty('--hover-offset-x', `${offsetX}px`);
+        panel.style.transform = `translateX(${offsetX}px) translateZ(-60px) rotateY(${-angle}deg)`;
 
-    // 멀티 영상(TV) 슬라이드: lightGallery 인스턴스
-    // 여러 영상은 #tvGallery 안에 <a data-src="..."> 아이템만 추가하면 자동으로 슬라이드로 묶임
-    const tvLightGallery = lightGallery(document.getElementById('tvGallery'), {
-      plugins: [lgVideo],
-      selector: 'a',
-      youTubePlayerParams: { autoplay: 1, rel: 0, modestbranding: 1 },
-      autoplayFirstVideo: true,
-      download: false,
-      counter: true
-    });
+        panel.innerHTML = `
+          <div class="popup-vpanel-header">
+            <span class="popup-vpanel-title">${slide.tag} ${slide.title}</span>
+          </div>
+          <div class="popup-vpanel-body">
+            <img src="https://img.youtube.com/vi/${slide.id}/hqdefault.jpg" alt="${slide.title}">
+            <div class="popup-vpanel-play"></div>
+          </div>
+        `;
+
+        // 가로막 부수고 즉시 내부 영상 모드로 스왑 매핑
+        panel.addEventListener('click', (e) => {
+          e.stopPropagation();
+          popupMultiWrapper.classList.remove('show');
+          popupVideoWrapper.classList.add('show');
+          popupTitle.innerText = `${titleBase} // ${slide.title}`;
+          loadVideo(slide.id);
+        });
+
+        popupPanelContainer.appendChild(panel);
+      });
+    }
 
     window.addEventListener('DOMContentLoaded', () => {
       setTimeout(() => {
@@ -547,44 +655,50 @@
     document.querySelectorAll('.hotspot-target').forEach(spot => {
       spot.addEventListener('click', () => {
         const type = spot.getAttribute('data-type');
+        const title = spot.getAttribute('data-title');
         
         if (type === 'video') {
-          openPopup(spot.getAttribute('data-title'), spot.getAttribute('data-video'));
+          // 영상이 하나일 때의 완벽한 팝업 UI 상태 매핑
+          popupMultiWrapper.classList.remove('show');
+          popupVideoWrapper.classList.add('show');
+          openPopupFrame(title);
+          
+          const videoId = extractVideoId(spot.getAttribute('data-video'));
+          if (videoId) loadVideo(videoId);
         } 
         else if (type === 'multi-video') {
-          // lightGallery를 첫 번째 슬라이드부터 열기 (좌우 화살표로 이동)
-          tvLightGallery.openGallery(0);
+          // 영상이 여러 개일 때도 창 모양을 그대로 유지하되 내부에 3D 패널 셀렉터 렌더링
+          popupVideoWrapper.classList.remove('show');
+          popupMultiWrapper.classList.add('show');
+          openPopupFrame(title);
+          buildPopup3DPanels(title);
         } 
         else if (type === 'link') {
-          const targetUrl = spot.getAttribute('data-url');
-          window.open(targetUrl, '_blank');
+          window.open(spot.getAttribute('data-url'), '_blank');
         }
       });
     });
 
-    function openPopup(title, videoUrl) {
+    function openPopupFrame(title) {
       popupTitle.innerText = title;
       popup.style.display = 'flex';
       popup.style.zIndex = ++topZIndex;
 
-      popup.style.left = `${(window.innerWidth - 560) / 2}px`;
+      popup.style.left = `${(window.innerWidth - 580) / 2}px`;
       popup.style.top = `${(window.innerHeight - popup.offsetHeight) / 2}px`;
-
-      const videoId = extractVideoId(videoUrl);
-      if (videoId) {
-        loadVideo(videoId);
-      }
     }
 
     function closePopup() {
       popup.style.display = 'none';
       videoFallback.classList.remove('show');
+      popupVideoWrapper.classList.remove('show');
+      popupMultiWrapper.classList.remove('show');
       if (ytPlayer && typeof ytPlayer.stopVideo === 'function') {
         ytPlayer.stopVideo();
       }
     }
 
-    // 모달 드래그 셔틀 컨트롤러
+    // 모달 드래그 기능
     let isDragging = false;
     let startX, startY, initialX, initialY;
     const popupHeader = document.getElementById('popupHeader');
