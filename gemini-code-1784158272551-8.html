@@ -1,0 +1,1552 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="referrer" content="strict-origin-when-cross-origin" />
+  
+  <title>AI 스쿼드의 작업대 | AI SQUAD</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700;900&family=Noto+Sans+KR:wght@500;700;900&display=swap" rel="stylesheet">
+
+  <style>
+    :root {
+      --mint: #00FFCC;
+      --mint-glow: rgba(0, 255, 204, 0.3);
+      --red: #FF3C3C;
+      --charcoal: #0D0E12;
+      --glass-bg: rgba(13, 14, 18, 0.85);
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: 'Orbitron', 'Noto Sans KR', sans-serif;
+      user-select: none;
+    }
+
+    body {
+      background-color: #000;
+      color: #FFF;
+      width: 100vw;
+      height: 100vh;
+      height: 100dvh;   /* 모바일 주소창을 제외한 실제 보이는 높이 */
+      overflow: hidden;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+
+    .desk-viewport {
+      position: relative;
+      width: 100vw;
+      height: 100vh;
+      height: 100dvh;   /* 모바일 주소창을 제외한 실제 보이는 높이 */
+      background-image: url('desk_bg.jpeg');
+      background-size: cover;
+      background-position: center;
+      overflow: hidden;
+    }
+
+    /* ===== 모바일: 가로 전용 ===== */
+    /* 가로(landscape)일 때는 데스크톱처럼 화면을 꽉 채움 */
+    @media (max-width: 950px) and (orientation: landscape) {
+      body { background-color: #000; align-items: center; }
+      .desk-viewport {
+        width: 100vw;
+        height: 100vh;
+        height: 100dvh;
+        background-size: cover;
+        background-position: center;
+      }
+      /* 팝업/카드가 낮은 화면 높이에 맞게 */
+      /* 가로 모바일: 높이가 낮으므로 팝업을 높이 기준으로 (헤더 ✕가 화면 안에 남도록) */
+      .cyber-popup {
+        width: min(88vw, 128vh) !important;
+        width: min(88vw, 128dvh) !important;
+        max-height: 92vh;
+        max-height: 92dvh;
+      }
+      .popup-header { padding: 8px 14px; }
+      .popup-title { font-size: 0.72rem; }
+      .interaction-guide {
+        bottom: 8px;
+        padding: 6px 14px;
+        font-size: 0.6rem;
+        max-width: 80vw;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+      .admin-box { max-width: 94vw; }
+      .vid-row { grid-template-columns: 70px 1fr auto; }
+    }
+
+    /* 세로(portrait)일 때는 "가로로 돌려주세요" 안내만 표시 */
+    .rotate-notice {
+      display: none;
+      position: fixed;
+      inset: 0;
+      z-index: 99999;
+      background: #0B0D12;
+      color: var(--mint);
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 22px;
+      text-align: center;
+      padding: 32px;
+      font-family: 'Orbitron', 'Noto Sans KR', sans-serif;
+    }
+    .rotate-notice .phone-icon {
+      width: 54px; height: 88px;
+      border: 3px solid var(--mint);
+      border-radius: 9px;
+      box-shadow: 0 0 22px var(--mint-glow);
+      animation: rotate-hint 2.2s ease-in-out infinite;
+    }
+    @keyframes rotate-hint {
+      0%, 30%   { transform: rotate(0deg); }
+      55%, 100% { transform: rotate(-90deg); }
+    }
+    .rotate-notice h2 {
+      font-size: 1rem;
+      letter-spacing: 2px;
+      text-shadow: 0 0 12px var(--mint-glow);
+    }
+    .rotate-notice p {
+      font-family: 'Noto Sans KR', sans-serif;
+      font-size: 0.85rem;
+      color: #9fb;
+      opacity: 0.8;
+      line-height: 1.6;
+    }
+    @media (max-width: 950px) and (orientation: portrait) {
+      .rotate-notice { display: flex; }
+    }
+
+    /* [인트로] 진입 시 자연스럽게 등장했다가 사라지는 시네마틱 오버레이 */
+    .intro-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      height: 100dvh;
+      background: radial-gradient(circle at center, #10151d 0%, #030508 100%);
+      z-index: 9999;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      transition: opacity 1s cubic-bezier(0.85, 0, 0.15, 1), visibility 1s;
+      opacity: 1;
+      visibility: visible;
+      overflow: hidden;
+    }
+
+    .intro-overlay::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.3) 50%), linear-gradient(90deg, rgba(255, 0, 0, 0.03), rgba(0, 255, 0, 0.01), rgba(0, 0, 255, 0.03));
+      background-size: 100% 4px, 6px 100%;
+      opacity: 0.6;
+      pointer-events: none;
+    }
+
+    .intro-overlay.fade-out {
+      opacity: 0;
+      visibility: hidden;
+    }
+
+    .intro-title-box {
+      text-align: center;
+      position: relative;
+    }
+
+    .intro-title-box h1 {
+      font-size: 4rem;
+      font-weight: 900;
+      letter-spacing: 6px;
+      color: #FFFFFF;
+      position: relative;
+      text-shadow: 0 0 20px rgba(0, 255, 204, 0.6);
+      animation: cyber-boot 1.8s steps(1, start) infinite, text-pulse 2.2s ease-in-out infinite alternate;
+    }
+
+    .intro-title-box p {
+      font-size: 0.95rem;
+      font-weight: 700;
+      color: var(--mint);
+      text-transform: uppercase;
+      letter-spacing: 12px;
+      margin-top: 10px;
+      opacity: 0.8;
+      position: relative;
+      animation: tracking-in 1.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    }
+
+    @keyframes cyber-boot {
+      0%, 100% { transform: translate(0); min-width: 100%; }
+      92% { transform: translate(-2px, 1px) skewX(3deg); color: #00FFCC; filter: blur(0.5px); }
+      94% { transform: translate(2px, -1px) skewX(-3deg); color: #FF3366; }
+      96% { transform: translate(-1px, -2px); filter: blur(1px); }
+    }
+
+    @keyframes text-pulse {
+      0% { transform: scale(0.98); opacity: 0.9; }
+      100% { transform: scale(1.02); opacity: 1; }
+    }
+
+    @keyframes tracking-in {
+      from { letter-spacing: -5px; opacity: 0; filter: blur(3px); }
+      to { letter-spacing: 12px; opacity: 0.8; filter: blur(0); }
+    }
+
+    /* 안내 가이드 */
+    .interaction-guide {
+      position: absolute;
+      bottom: 40px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: rgba(0, 0, 0, 0.85);
+      border: 1px solid var(--mint);
+      padding: 12px 28px;
+      border-radius: 0px;
+      font-size: 0.8rem;
+      font-weight: 700;
+      color: #FFF;
+      box-shadow: 0 0 15px var(--mint-glow);
+      letter-spacing: 1px;
+      pointer-events: none;
+      z-index: 5;
+    }
+
+    /* 대화형 핫스팟 영역 - 4:3 비율 고정 컨테이너 */
+    .hotspot-target {
+      position: absolute;
+      cursor: pointer;
+      z-index: 10;
+      transform: translate(-50%, -50%);
+    }
+
+    .ratio-4-3-box {
+      position: relative;
+      width: 100%;
+      padding-top: 75%;
+    }
+
+    /* 네온 민트 HUD 오버레이 */
+    .hud-overlay {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      border: 2px solid var(--mint);
+      box-shadow: inset 0 0 25px rgba(0, 255, 204, 0.15), 0 0 20px var(--mint-glow);
+      opacity: 0;
+      transition: opacity 0.2s ease;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      padding: 12px;
+      overflow: hidden;
+      background: linear-gradient(180deg, rgba(0, 255, 204, 0.02) 0%, rgba(0, 255, 204, 0.06) 100%);
+    }
+
+    .hotspot-target:hover .hud-overlay {
+      opacity: 1;
+      animation: glitch 0.3s linear;
+    }
+    /* 모바일: 첫 탭으로 타겟보드 표시 */
+    .hotspot-target.touched .hud-overlay {
+      opacity: 1;
+      animation: glitch 0.3s linear;
+    }
+
+    .hud-header {
+      font-size: 0.75rem;
+      font-weight: 700;
+      color: var(--mint);
+      letter-spacing: 1.5px;
+      border-bottom: 1px solid rgba(0, 255, 204, 0.3);
+      padding-bottom: 6px;
+      display: flex;
+      justify-content: space-between;
+      text-shadow: 0 0 5px var(--mint);
+    }
+
+    .hud-footer {
+      font-size: 0.65rem;
+      color: #A0FCE9;
+      display: flex;
+      justify-content: space-between;
+      border-top: 1px solid rgba(0, 255, 204, 0.3);
+      padding-top: 6px;
+    }
+
+    .hud-overlay::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 3px;
+      background: var(--mint);
+      box-shadow: 0 0 12px var(--mint), 0 0 4px #FFF;
+      animation: scan-line 2.5s linear infinite;
+    }
+
+    @keyframes scan-line {
+      0% { top: 0%; }
+      50% { top: 100%; }
+      100% { top: 0%; }
+    }
+
+    @keyframes glitch {
+      0% { transform: skew(0deg); filter: hue-rotate(0deg); opacity: 0.3; }
+      20% { transform: skew(4deg) scale(1.05); filter: hue-rotate(90deg); opacity: 0.8; }
+      40% { transform: skew(-4deg); opacity: 0.5; }
+      60% { transform: skew(2deg) scale(0.98); opacity: 0.9; }
+      80% { transform: skew(-1deg); opacity: 0.7; }
+      100% { transform: skew(0deg); filter: hue-rotate(0deg); opacity: 1; }
+    }
+
+    .crosshair {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      width: 20px;
+      height: 20px;
+      transform: translate(-50%, -50%);
+      pointer-events: none;
+    }
+    .crosshair::before, .crosshair::after {
+      content: '';
+      position: absolute;
+      background: rgba(0, 255, 204, 0.4);
+    }
+    .crosshair::before { top: 9px; left: 0; width: 20px; height: 2px; }
+    .crosshair::after { top: 0; left: 9px; width: 2px; height: 20px; }
+
+    .hud-corner {
+      position: absolute;
+      width: 12px;
+      height: 12px;
+      border: 3px solid #FFF;
+      box-shadow: 0 0 8px var(--mint);
+    }
+    .c-tl { top: -3px; left: -3px; border-right: none; border-bottom: none; }
+    .c-tr { top: -3px; right: -3px; border-left: none; border-bottom: none; }
+    .c-bl { bottom: -3px; left: -3px; border-right: none; border-top: none; }
+    .c-br { bottom: -3px; right: -3px; border-left: none; border-top: none; }
+
+    /* ===== 잠긴(비활성) hotspot — 빨간 타겟보드 ===== */
+    .hotspot-target.locked { cursor: default; }
+    .hotspot-target.locked .hud-overlay {
+      border-color: var(--red);
+      box-shadow: inset 0 0 25px rgba(255, 60, 60, 0.15), 0 0 20px rgba(255, 60, 60, 0.35);
+      background: linear-gradient(180deg, rgba(255, 60, 60, 0.02) 0%, rgba(255, 60, 60, 0.08) 100%);
+    }
+    .hotspot-target.locked .hud-header {
+      color: var(--red);
+      border-bottom-color: rgba(255, 60, 60, 0.35);
+      text-shadow: 0 0 5px var(--red);
+    }
+    .hotspot-target.locked .hud-footer {
+      color: #FFB0B0;
+      border-top-color: rgba(255, 60, 60, 0.35);
+    }
+    .hotspot-target.locked .hud-overlay::before {
+      background: var(--red);
+      box-shadow: 0 0 12px var(--red), 0 0 4px #FFF;
+    }
+    .hotspot-target.locked .hud-corner {
+      box-shadow: 0 0 8px var(--red);
+    }
+    .hotspot-target.locked .crosshair::before,
+    .hotspot-target.locked .crosshair::after {
+      background: rgba(255, 60, 60, 0.5);
+    }
+
+    /* 책상 레이아웃 좌표 매핑 */
+    #spot-tv { top: 29%; left: 12.5%; width: 215px; }
+    #spot-figure { top: 46%; left: 27%; width: 120px; }
+    #spot-smartphone { top: 71%; left: 21.5%; width: 130px; }
+    #spot-voodoo { top: 40%; left: 89%; width: 180px; }
+    #spot-notebook { top: 62%; left: 77%; width: 200px; }
+    /* 잠긴(비활성) 대상 */
+    #spot-pencil { top: 47%; left: 7%; width: 110px; }
+    #spot-headset { top: 30%; left: 77%; width: 150px; }
+
+    /* 가로 모바일: hotspot 크기를 화면 폭에 비례 (데스크톱 1400px 기준 환산) */
+    @media (max-width: 950px) and (orientation: landscape) {
+      #spot-tv        { width: 15.4vw; }
+      #spot-figure    { width: 8.6vw; }
+      #spot-smartphone{ width: 9.3vw; }
+      #spot-voodoo    { width: 12.9vw; }
+      #spot-notebook  { width: 14.3vw; }
+      #spot-pencil    { width: 6.8vw; }
+      #spot-headset   { width: 10.7vw; }
+    }
+
+    /* 민트 네온 매트릭스 팝업 */
+    .cyber-popup {
+      position: absolute;
+      width: 560px;
+      background: var(--glass-bg);
+      backdrop-filter: blur(15px);
+      border: 1px solid var(--mint);
+      box-shadow: 0 0 35px rgba(0, 255, 204, 0.2);
+      display: none;
+      flex-direction: column;
+      z-index: 1000;
+      cursor: move;
+    }
+
+    .popup-header {
+      padding: 14px 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1px solid rgba(0, 255, 204, 0.3);
+      background: rgba(0, 255, 204, 0.03);
+    }
+
+    .popup-title {
+      font-weight: 700;
+      font-size: 0.9rem;
+      color: #FFF;
+      letter-spacing: 1.5px;
+      text-shadow: 0 0 5px var(--mint);
+    }
+
+    .popup-close {
+      background: none;
+      border: none;
+      font-size: 1.2rem;
+      color: var(--mint);
+      cursor: pointer;
+      text-shadow: 0 0 5px var(--mint);
+    }
+
+    .popup-body {
+      background: #000;
+      cursor: default;
+    }
+
+    .video-wrapper {
+      position: relative;
+      padding-bottom: 56.25%;
+      height: 0;
+    }
+
+    .video-wrapper iframe {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+    }
+
+    .video-fallback {
+      display: none;
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 14px;
+      background: #000;
+      text-align: center;
+      padding: 20px;
+    }
+
+    .video-fallback.show {
+      display: flex;
+    }
+
+    .video-fallback p {
+      color: var(--mint);
+      font-size: 0.85rem;
+      opacity: 0.85;
+      line-height: 1.5;
+    }
+
+    .video-fallback a {
+      display: inline-block;
+      padding: 10px 20px;
+      border: 1px solid var(--mint);
+      color: var(--mint);
+      text-decoration: none;
+      border-radius: 4px;
+      font-size: 0.85rem;
+      letter-spacing: 0.05em;
+      transition: background 0.2s, color 0.2s;
+    }
+
+    .video-fallback a:hover {
+      background: var(--mint);
+      color: #000;
+    }
+
+    /* ===== 3D 영상 커버플로우 (책상 위에 떠 있음) ===== */
+    .panel-stage {
+      display: none;
+      position: fixed;
+      inset: 0;
+      z-index: 5000;
+      /* 책상이 비쳐 보이도록 아주 옅은 딤 처리만 */
+      background: rgba(5, 6, 10, 0.35);
+      overflow: hidden;
+      perspective: 1400px;
+      cursor: grab;
+    }
+    .panel-stage.show { display: block; }
+    .panel-stage.dragging { cursor: grabbing; }
+
+    /* 우상단 닫기 (팝업 ✕와 동일 톤) */
+    .panel-stage-close {
+      position: absolute;
+      top: 22px;
+      right: 26px;
+      z-index: 10;
+      background: rgba(0,0,0,0.4);
+      border: 1px solid var(--mint);
+      color: var(--mint);
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      font-size: 1.1rem;
+      cursor: pointer;
+      transition: background 0.2s, color 0.2s;
+    }
+    .panel-stage-close:hover { background: var(--mint); color: #000; }
+
+    /* 좌우 넘김 힌트 */
+    .panel-nav-hint {
+      position: absolute;
+      bottom: 40px;
+      left: 0; right: 0;
+      text-align: center;
+      color: var(--mint);
+      font-size: 0.78rem;
+      letter-spacing: 0.1em;
+      opacity: 0.6;
+      pointer-events: none;
+      font-family: 'Noto Sans KR', sans-serif;
+    }
+
+    /* 카드들이 배치되는 3D 무대 (화면 중앙) */
+    .panel-ring {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform-style: preserve-3d;
+      width: 0;
+      height: 0;
+    }
+
+    /* 3D 카드 = 사이버 팝업 창을 미니어처로 복제 */
+    .vpanel {
+      position: absolute;
+      width: 460px;
+      margin: -150px 0 0 -230px; /* 대략 중심 정렬 */
+      background: var(--glass-bg);
+      backdrop-filter: blur(15px);
+      border: 1px solid var(--mint);
+      box-shadow: 0 0 35px rgba(0, 255, 204, 0.2);
+      cursor: pointer;
+      transition: transform 0.45s cubic-bezier(0.22, 1, 0.36, 1), box-shadow 0.25s, filter 0.3s;
+      backface-visibility: hidden;
+      display: flex;
+      flex-direction: column;
+      will-change: transform;
+    }
+    /* 드래그 중엔 손가락을 즉시 따라오도록 transition 제거 */
+    .panel-stage.dragging .vpanel { transition: box-shadow 0.25s, filter 0.3s; }
+
+    /* 가로 모바일: 화면 높이가 낮으므로 카드 크기를 높이 기준으로 맞춤 */
+    @media (max-width: 950px) and (orientation: landscape) {
+      .vpanel {
+        width: 62vh;          /* 16:9 바디 + 헤더가 화면 높이에 들어오도록 */
+        width: 62dvh;
+        margin-left: -31vh;
+        margin-left: -31dvh;
+        margin-top: -22vh;
+        margin-top: -22dvh;
+      }
+      .vpanel-header { padding: 7px 12px; }
+      .vpanel-title { font-size: 0.68rem; }
+      .vpanel-play::after { width: 40px; height: 40px; }
+    }
+    .vpanel.is-center:hover {
+      box-shadow: 0 0 55px rgba(0, 255, 204, 0.5);
+    }
+    /* 중앙이 아닌 카드는 살짝 어둡게 (깊이감) */
+    .vpanel:not(.is-center) { filter: brightness(0.5); }
+
+    .vpanel-header {
+      padding: 14px 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1px solid rgba(0, 255, 204, 0.3);
+      background: rgba(0, 255, 204, 0.03);
+    }
+    .vpanel-title {
+      font-weight: 700;
+      font-size: 0.9rem;
+      color: #FFF;
+      letter-spacing: 1.5px;
+      text-shadow: 0 0 5px var(--mint);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .vpanel-header .tag {
+      color: var(--mint);
+      font-size: 1.2rem;
+      text-shadow: 0 0 5px var(--mint);
+      flex-shrink: 0;
+      margin-left: 12px;
+    }
+
+    .vpanel-body {
+      position: relative;
+      background: #000;
+      aspect-ratio: 16 / 9;
+      overflow: hidden;
+    }
+    .vpanel-body img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      opacity: 0.8;
+      transition: opacity 0.25s;
+    }
+    .vpanel.is-center:hover .vpanel-body img { opacity: 1; }
+    .vpanel-play {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      pointer-events: none;
+    }
+    .vpanel-play::after {
+      content: "";
+      width: 64px; height: 64px;
+      border-radius: 50%;
+      background: rgba(0,0,0,0.5);
+      border: 2px solid var(--mint);
+      box-shadow: 0 0 14px var(--mint-glow);
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='%2300FFCC'%3E%3Cpath d='M8 5v14l11-7z'/%3E%3C/svg%3E");
+      background-repeat: no-repeat;
+      background-position: 56% center;
+    }
+
+    /* ===== 관리자 모드 ===== */
+    .admin-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      z-index: 9000;
+      background: rgba(4, 6, 10, 0.94);
+      backdrop-filter: blur(8px);
+      overflow-y: auto;
+      padding: 40px 20px;
+      font-family: 'Noto Sans KR', 'Orbitron', sans-serif;
+    }
+    .admin-overlay.show { display: block; }
+
+    .admin-box {
+      max-width: 720px;
+      margin: 0 auto;
+      border: 1px solid var(--mint);
+      background: var(--glass-bg);
+      box-shadow: 0 0 35px rgba(0, 255, 204, 0.2);
+    }
+    .admin-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 16px 22px;
+      border-bottom: 1px solid rgba(0, 255, 204, 0.3);
+      background: rgba(0, 255, 204, 0.04);
+    }
+    .admin-head h2 {
+      color: var(--mint);
+      font-family: 'Orbitron', sans-serif;
+      font-size: 1rem;
+      letter-spacing: 1px;
+      text-shadow: 0 0 6px var(--mint-glow);
+    }
+    .admin-head button {
+      background: none; border: 1px solid var(--mint);
+      color: var(--mint); width: 34px; height: 34px;
+      border-radius: 50%; cursor: pointer; font-size: 1rem;
+    }
+    .admin-head button:hover { background: var(--mint); color: #000; }
+
+    .admin-body { padding: 22px; }
+
+    /* 로그인 */
+    .admin-login input {
+      width: 100%; padding: 12px 14px; margin-bottom: 14px;
+      background: #0d0f14; border: 1px solid #2a2d34; color: #eee;
+      font-family: inherit; font-size: 0.95rem;
+    }
+    .admin-login input:focus { outline: none; border-color: var(--mint); }
+    .admin-login .err { color: #FF5C5C; font-size: 0.82rem; margin-bottom: 12px; min-height: 1em; }
+
+    .btn-mint {
+      background: var(--mint); color: #000; border: none;
+      padding: 11px 20px; font-weight: 700; cursor: pointer;
+      font-family: inherit; letter-spacing: 0.03em;
+    }
+    .btn-mint:hover { background: #33ffd9; }
+    .btn-ghost {
+      background: none; border: 1px solid var(--mint); color: var(--mint);
+      padding: 10px 18px; cursor: pointer; font-family: inherit;
+    }
+    .btn-ghost:hover { background: rgba(0,255,204,0.1); }
+    .btn-danger {
+      background: none; border: 1px solid #FF5C5C; color: #FF5C5C;
+      padding: 6px 12px; cursor: pointer; font-family: inherit; font-size: 0.8rem;
+    }
+    .btn-danger:hover { background: rgba(255,92,92,0.12); }
+
+    /* 영상 목록 편집 */
+    .admin-section-label {
+      color: var(--mint); font-size: 0.85rem; letter-spacing: 0.05em;
+      margin: 4px 0 14px; font-family: 'Orbitron', sans-serif;
+    }
+    .vid-row {
+      display: grid;
+      grid-template-columns: 90px 1fr auto;
+      gap: 10px;
+      align-items: center;
+      padding: 10px;
+      border: 1px solid #23262d;
+      margin-bottom: 10px;
+      background: #0d0f14;
+    }
+    .vid-row .thumb {
+      width: 90px; height: 50px; object-fit: cover;
+      background: #000; border: 1px solid #23262d;
+    }
+    .vid-row .fields { display: flex; flex-direction: column; gap: 6px; min-width: 0; }
+    .vid-row input {
+      background: #16181d; border: 1px solid #2a2d34; color: #eee;
+      padding: 7px 9px; font-family: inherit; font-size: 0.82rem; width: 100%;
+    }
+    .vid-row input:focus { outline: none; border-color: var(--mint); }
+    .vid-row .drag-handle {
+      color: #555; cursor: grab; font-size: 1rem; padding: 0 4px; user-select: none;
+    }
+
+    .admin-actions {
+      display: flex; gap: 10px; flex-wrap: wrap;
+      margin-top: 18px; padding-top: 18px;
+      border-top: 1px solid rgba(0,255,204,0.2);
+    }
+
+    /* 코드 내보내기 */
+    .admin-export { margin-top: 18px; }
+    .admin-export textarea {
+      width: 100%; min-height: 150px; resize: vertical;
+      background: #0d0f14; border: 1px solid #2a2d34; color: #7CFFE4;
+      font-family: 'Consolas', monospace; font-size: 0.8rem; padding: 12px;
+      line-height: 1.5;
+    }
+    .admin-hint {
+      font-size: 0.78rem; color: #888; line-height: 1.6; margin: 8px 0 0;
+    }
+    .toast {
+      position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%);
+      background: var(--mint); color: #000; padding: 10px 22px;
+      font-weight: 700; z-index: 9999; opacity: 0;
+      transition: opacity 0.25s; pointer-events: none;
+      font-family: 'Noto Sans KR', sans-serif;
+    }
+    .toast.show { opacity: 1; }
+
+    /* 관리자 탭 (hotspot 선택) */
+    .admin-tabs { display: flex; flex-wrap: wrap; gap: 8px; }
+    .admin-tab {
+      background: #0d0f14; border: 1px solid #2a2d34; color: #aaa;
+      padding: 8px 14px; cursor: pointer; font-family: inherit; font-size: 0.82rem;
+      transition: all 0.15s;
+    }
+    .admin-tab:hover { border-color: var(--mint); color: #eee; }
+    .admin-tab.active {
+      border-color: var(--mint); color: var(--mint);
+      background: rgba(0,255,204,0.08); font-weight: 700;
+    }
+    .admin-tab .count {
+      display: inline-block; margin-left: 6px; font-size: 0.72rem;
+      color: #777;
+    }
+    .admin-tab.active .count { color: var(--mint); }
+  </style>
+</head>
+<body>
+
+  <!-- 세로 화면일 때 표시되는 가로 전환 안내 -->
+  <div class="rotate-notice" id="rotateNotice">
+    <div class="phone-icon"></div>
+    <h2>PLEASE ROTATE</h2>
+    <p>이 콘텐츠는 가로 화면에 최적화되어 있습니다.<br>기기를 가로로 돌려주세요.</p>
+  </div>
+
+  <div class="intro-overlay" id="introOverlay">
+    <div class="intro-title-box">
+      <h1>AI SQUAD MATRIX</h1>
+      <p>System Initializing</p>
+    </div>
+  </div>
+
+  <div class="desk-viewport">
+
+    <div class="hotspot-target" id="spot-tv">
+      <div class="ratio-4-3-box">
+        <div class="hud-overlay">
+          <div class="hud-corner c-tl"></div><div class="hud-corner c-tr"></div><div class="hud-corner c-bl"></div><div class="hud-corner c-br"></div>
+          <div class="crosshair"></div>
+          <div class="hud-header"><span>TARGET DETECTED</span><span>75%</span></div>
+          <div class="hud-footer"><span>SYS_SCANNING...</span><span>TYPE: AD_MULTI.avi</span></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="hotspot-target" id="spot-figure">
+      <div class="ratio-4-3-box">
+        <div class="hud-overlay">
+          <div class="hud-corner c-tl"></div><div class="hud-corner c-tr"></div><div class="hud-corner c-bl"></div><div class="hud-corner c-br"></div>
+          <div class="crosshair"></div>
+          <div class="hud-header"><span>TARGET DETECTED</span><span>92%</span></div>
+          <div class="hud-footer"><span>DATA_SYNC...</span><span>TYPE: MERCH.zip</span></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="hotspot-target" id="spot-smartphone">
+      <div class="ratio-4-3-box">
+        <div class="hud-overlay">
+          <div class="hud-corner c-tl"></div><div class="hud-corner c-tr"></div><div class="hud-corner c-bl"></div><div class="hud-corner c-br"></div>
+          <div class="crosshair"></div>
+          <div class="hud-header"><span>TARGET DETECTED</span><span>40%</span></div>
+          <div class="hud-footer"><span>STREAM_FLOW...</span><span>TYPE: SHORTS.mov</span></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="hotspot-target" id="spot-voodoo">
+      <div class="ratio-4-3-box">
+        <div class="hud-overlay">
+          <div class="hud-corner c-tl"></div><div class="hud-corner c-tr"></div><div class="hud-corner c-bl"></div><div class="hud-corner c-br"></div>
+          <div class="crosshair"></div>
+          <div class="hud-header"><span>TARGET DETECTED</span><span>88%</span></div>
+          <div class="hud-footer"><span>GEN_THREAT_SCAN</span><span>TYPE: HORROR.mp4</span></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="hotspot-target" id="spot-notebook">
+      <div class="ratio-4-3-box">
+        <div class="hud-overlay">
+          <div class="hud-corner c-tl"></div><div class="hud-corner c-tr"></div><div class="hud-corner c-bl"></div><div class="hud-corner c-br"></div>
+          <div class="crosshair"></div>
+          <div class="hud-header"><span>TARGET DETECTED</span><span>99%</span></div>
+          <div class="hud-footer"><span>OS_EXTERNAL_LINK</span><span>TYPE: NOTION.db</span></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 잠긴(비활성) 대상 — 빨간 타겟보드만, 클릭해도 아무 동작 없음 -->
+    <div class="hotspot-target locked" id="spot-pencil">
+      <div class="ratio-4-3-box">
+        <div class="hud-overlay">
+          <div class="hud-corner c-tl"></div><div class="hud-corner c-tr"></div><div class="hud-corner c-bl"></div><div class="hud-corner c-br"></div>
+          <div class="crosshair"></div>
+          <div class="hud-header"><span>ACCESS DENIED</span><span>✕</span></div>
+          <div class="hud-footer"><span>NO_STREAM_DATA</span><span>LOCKED</span></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="hotspot-target locked" id="spot-headset">
+      <div class="ratio-4-3-box">
+        <div class="hud-overlay">
+          <div class="hud-corner c-tl"></div><div class="hud-corner c-tr"></div><div class="hud-corner c-bl"></div><div class="hud-corner c-br"></div>
+          <div class="crosshair"></div>
+          <div class="hud-header"><span>ACCESS DENIED</span><span>✕</span></div>
+          <div class="hud-footer"><span>NO_STREAM_DATA</span><span>LOCKED</span></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 3D 영상 패널 뷰 (TV hotspot 클릭 시 열림) -->
+    <div class="panel-stage" id="panelStage">
+      <button class="panel-stage-close" onclick="closePanelStage()">✕</button>
+      <div class="panel-ring" id="panelRing"></div>
+      <div class="panel-nav-hint" id="panelNavHint">◄ 드래그하여 넘기기 ►</div>
+    </div>
+
+    <div class="interaction-guide">System Ready. Select an object to initiate streaming bridge.</div>
+
+    <div class="cyber-popup" id="videoPopup">
+      <div class="popup-header" id="popupHeader">
+        <span class="popup-title" id="popupTitle">QUANTUM INTERFACE LINK</span>
+        <button class="popup-close" onclick="closePopup()">✕</button>
+      </div>
+      <div class="popup-body">
+        <div class="video-wrapper">
+          <div id="popupIframe"></div>
+          <div class="video-fallback" id="videoFallback">
+            <p>이 영상은 소유자가 외부 사이트 재생(임베드)을<br>허용하지 않아 여기서 재생할 수 없습니다. (오류 153)</p>
+            <a id="videoFallbackLink" href="#" target="_blank" rel="noopener">▶ 유튜브에서 바로 보기</a>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <script src="https://www.youtube.com/iframe_api"></script>
+  <script>
+    let topZIndex = 100;
+    const popup = document.getElementById('videoPopup');
+    const popupTitle = document.getElementById('popupTitle');
+    const videoFallback = document.getElementById('videoFallback');
+    const videoFallbackLink = document.getElementById('videoFallbackLink');
+    const introOverlay = document.getElementById('introOverlay');
+
+    // 유튜브 IFrame Player API 상태
+    let ytPlayer = null;
+    let ytApiReady = false;
+    let pendingVideoId = null;
+
+    function extractVideoId(url) {
+      const match = url.match(/embed\/([a-zA-Z0-9_-]+)/);
+      return match ? match[1] : null;
+    }
+
+    window.onYouTubeIframeAPIReady = function () {
+      ytApiReady = true;
+      if (pendingVideoId) {
+        loadVideo(pendingVideoId);
+        pendingVideoId = null;
+      }
+    };
+
+    function loadVideo(videoId) {
+      if (!ytApiReady) {
+        pendingVideoId = videoId;
+        return;
+      }
+      videoFallback.classList.remove('show');
+      videoFallbackLink.href = `https://www.youtube.com/watch?v=${videoId}`;
+
+      if (ytPlayer && typeof ytPlayer.loadVideoById === 'function') {
+        ytPlayer.loadVideoById(videoId);
+        return;
+      }
+
+      ytPlayer = new YT.Player('popupIframe', {
+        width: '100%',
+        height: '100%',
+        videoId: videoId,
+        host: 'https://www.youtube-nocookie.com',
+        playerVars: { autoplay: 1, rel: 0 },
+        events: {
+          onError: onPlayerError
+        }
+      });
+    }
+
+    // 오류 코드 2: 잘못된 파라미터, 5: HTML5 플레이어 오류
+    // 100: 삭제/비공개 영상, 101/150: 임베드(외부 재생) 금지 — 이게 153 에러의 실제 원인
+    function onPlayerError(event) {
+      videoFallback.classList.add('show');
+    }
+
+    // ===== 3D 영상 패널 뷰 =====
+    // ===== 통합 데이터: 모든 hotspot =====
+    // 실제 데이터는 Google Sheets(Apps Script)에서 실시간으로 불러옵니다.
+    // 아래는 시트 로딩 실패 시 사용할 "기본값(폴백)"입니다.
+    // videos 개수에 따라 UI 자동 결정: 1개→팝업, 2개+→커버플로우
+    const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwWcYCq7Ofv8XVuy2rq_MtQKG7pU9cexF0RzYRpc1DJILROcbI-0dX9GKQiRNeEHyA/exec";
+
+    const DEFAULT_HOTSPOT_DATA = {
+      "spot-tv": {
+        title: "⚡ LOCK_ON: COMMERCIAL",
+        videos: [
+          { id: "tQzRMOwtmP8", tag: "⚡", title: "LOCK_ON: COMMERCIAL 01" },
+          { id: "ghQFJoDIGMo", tag: "⚡", title: "LOCK_ON: COMMERCIAL 02" }
+        ]
+      },
+      "spot-figure": {
+        title: "🎀 LOCK_ON: GOODS",
+        videos: [
+          { id: "dQw4w9WgXcQ", tag: "🎀", title: "LOCK_ON: GOODS" }
+        ]
+      },
+      "spot-smartphone": {
+        title: "📱 LOCK_ON: SHORTS",
+        videos: [
+          { id: "tQzRMOwtmP8", tag: "📱", title: "LOCK_ON: SHORTS" }
+        ]
+      },
+      "spot-voodoo": {
+        title: "👀 LOCK_ON: HORROR",
+        videos: [
+          { id: "tQzRMOwtmP8", tag: "👀", title: "LOCK_ON: HORROR" }
+        ]
+      },
+      "spot-notebook": {
+        type: "link",
+        url: "https://www.notion.so"
+      }
+    };
+
+    // 실제 사용되는 데이터 (시트에서 불러온 값으로 교체됨, 실패 시 기본값 유지)
+    let hotspotData = JSON.parse(JSON.stringify(DEFAULT_HOTSPOT_DATA));
+
+    // 시트에서 데이터 불러오기 (사이트 로딩 시)
+    async function loadHotspotData() {
+      try {
+        const res = await fetch(APPS_SCRIPT_URL, { method: 'GET' });
+        const json = await res.json();
+        if (json && json.ok && json.data) {
+          hotspotData = json.data;
+        }
+      } catch (err) {
+        // 실패 시 DEFAULT_HOTSPOT_DATA 유지 — 사이트는 그대로 작동
+        console.warn('영상 데이터를 시트에서 불러오지 못했습니다. 기본값을 사용합니다.', err);
+      }
+    }
+
+    // 현재 커버플로우에 로드된 영상 목록 (열 때마다 해당 hotspot 것으로 채워짐)
+    let currentVideos = [];
+
+    const panelStage = document.getElementById('panelStage');
+    const panelRing = document.getElementById('panelRing');
+    const panelNavHint = document.getElementById('panelNavHint');
+
+    let panels = [];        // 생성된 카드 DOM 배열
+    let activeIndex = 0;    // 현재 중앙 카드 인덱스
+
+    // 카드 DOM을 한 번만 생성
+    function buildPanels() {
+      panelRing.innerHTML = '';
+      panels = [];
+      currentVideos.forEach((slide, i) => {
+        const panel = document.createElement('div');
+        panel.className = 'vpanel';
+        panel.innerHTML = `
+          <div class="vpanel-header">
+            <span class="vpanel-title">${slide.tag ? slide.tag + ' ' : ''}${slide.title}</span>
+            <span class="tag">▶</span>
+          </div>
+          <div class="vpanel-body">
+            <img src="https://img.youtube.com/vi/${slide.id}/hqdefault.jpg" alt="${slide.title}">
+            <span class="vpanel-play"></span>
+          </div>
+        `;
+        panel.addEventListener('click', () => {
+          if (dragMoved) return;            // 드래그였으면 클릭 무시
+          if (i !== activeIndex) {          // 옆 카드 클릭 → 그 카드를 중앙으로
+            activeIndex = i;
+            layout();
+            return;
+          }
+          // 중앙 카드 클릭 → 재생
+          closePanelStage();
+          playSingle(slide);
+        });
+        panelRing.appendChild(panel);
+        panels.push(panel);
+      });
+    }
+
+    // activeIndex 기준으로 각 카드의 커버플로우 배치를 계산
+    // dragOffset: 드래그 중 실시간 미리보기용(-1~1, 카드 한 칸 비율)
+    function layout(dragOffset = 0) {
+      // 가로 모바일에선 카드가 화면 높이 기준(62vh)이므로 간격도 그에 맞춤
+      const mobile = window.matchMedia('(max-width: 950px)').matches;
+      const cardW = mobile ? window.innerHeight * 0.62 : 460;
+      const stepX = mobile ? cardW * 0.66 : 300;   // 이웃 카드 옆 간격
+      const stepZ = mobile ? 190 : 260;            // 이웃 카드 깊이
+      const tilt = 48;                              // 이웃 카드 기울기(도)
+
+      panels.forEach((panel, i) => {
+        // 중앙(active)으로부터의 상대 위치 (드래그 오프셋 반영)
+        const rel = i - activeIndex - dragOffset;
+        const dir = Math.sign(rel);
+        const dist = Math.abs(rel);
+
+        // 중앙: 정면 & 앞으로. 멀수록 옆+뒤로 밀리고 기울어짐
+        const x = rel * stepX;
+        const z = -dist * stepZ;
+        const angle = -dir * Math.min(dist, 1.2) * tilt;
+
+        panel.style.transform =
+          `translateX(${x}px) translateZ(${z}px) rotateY(${angle}deg)`;
+        // 가까운 카드가 위로 오도록 z-index
+        panel.style.zIndex = String(100 - Math.round(dist * 10));
+        // 중앙 카드만 재생 가능 강조
+        panel.classList.toggle('is-center', Math.abs(rel) < 0.5);
+      });
+
+      // 넘김 힌트는 카드가 2개 이상일 때만
+      panelNavHint.style.display = currentVideos.length > 1 ? 'block' : 'none';
+    }
+
+    function openPanelStage(videos) {
+      closePopup();          // 열려있는 단일 영상 팝업을 먼저 닫음
+      currentVideos = videos;
+      activeIndex = 0;
+      buildPanels();
+      layout();
+      panelStage.classList.add('show');
+    }
+    function closePanelStage() {
+      panelStage.classList.remove('show');
+    }
+
+    // ===== 좌우 드래그/스와이프로 넘기기 =====
+    let isPanelDragging = false;
+    let dragStartX = 0;
+    let dragMoved = false;
+
+    // 마우스/터치 공통 X좌표 추출
+    function getX(e) {
+      if (e.touches && e.touches[0]) return e.touches[0].clientX;
+      if (e.changedTouches && e.changedTouches[0]) return e.changedTouches[0].clientX;
+      return e.clientX;
+    }
+
+    function startDrag(e) {
+      if (e.target.closest('.panel-stage-close')) return;
+      isPanelDragging = true;
+      dragMoved = false;
+      dragStartX = getX(e);
+      panelStage.classList.add('dragging');
+    }
+    function moveDrag(e) {
+      if (!isPanelDragging) return;
+      const dx = getX(e) - dragStartX;
+      if (Math.abs(dx) > 5) dragMoved = true;
+      const mobileNow = window.matchMedia('(max-width: 950px)').matches;
+      const stepX = mobileNow ? (window.innerHeight * 0.62) * 0.66 : 300;
+      const offset = -dx / stepX;
+      layout(offset);
+    }
+    function endDrag(e) {
+      if (!isPanelDragging) return;
+      isPanelDragging = false;
+      panelStage.classList.remove('dragging');
+      const dx = getX(e) - dragStartX;
+      const threshold = 60;
+      if (dx <= -threshold) activeIndex = Math.min(activeIndex + 1, currentVideos.length - 1);
+      else if (dx >= threshold) activeIndex = Math.max(activeIndex - 1, 0);
+      layout();
+    }
+
+    panelStage.addEventListener('mousedown', startDrag);
+    document.addEventListener('mousemove', moveDrag);
+    document.addEventListener('mouseup', endDrag);
+    // 터치
+    panelStage.addEventListener('touchstart', startDrag, { passive: true });
+    document.addEventListener('touchmove', moveDrag, { passive: true });
+    document.addEventListener('touchend', endDrag);
+
+    // 배경(빈 공간) 클릭 시 닫기 — 단, 드래그가 아니었을 때만
+    panelStage.addEventListener('click', (e) => {
+      if (e.target === panelStage && !dragMoved) closePanelStage();
+    });
+    // 키보드: ESC 닫기, 좌우 화살표로 넘기기
+    document.addEventListener('keydown', (e) => {
+      if (!panelStage.classList.contains('show')) return;
+      if (e.key === 'Escape') closePanelStage();
+      else if (e.key === 'ArrowRight') { activeIndex = Math.min(activeIndex + 1, currentVideos.length - 1); layout(); }
+      else if (e.key === 'ArrowLeft') { activeIndex = Math.max(activeIndex - 1, 0); layout(); }
+    });
+
+    window.addEventListener('DOMContentLoaded', () => {
+      // 인트로가 뜨는 동안 시트에서 영상 데이터를 불러옴 (사용자는 대기를 못 느낌)
+      loadHotspotData();
+      setTimeout(() => {
+        introOverlay.classList.add('fade-out');
+      }, 2400);
+    });
+
+    // 영상 하나를 사이버 팝업으로 재생하는 헬퍼
+    function playSingle(video) {
+      const title = `${video.tag ? video.tag + ' ' : ''}${video.title}`;
+      openPopup(title, `https://www.youtube-nocookie.com/embed/${video.id}?autoplay=1&rel=0`);
+    }
+
+    // 모바일 여부 (터치 우선 판단)
+    const isMobile = window.matchMedia('(max-width: 950px)').matches
+                     || ('ontouchstart' in window);
+
+    // 다른 곳 탭하면 모든 touched 해제
+    function clearTouched(except) {
+      document.querySelectorAll('.hotspot-target.touched').forEach(s => {
+        if (s !== except) s.classList.remove('touched');
+      });
+    }
+    document.addEventListener('click', (e) => {
+      if (!e.target.closest('.hotspot-target')) clearTouched(null);
+    });
+
+    // 실제 hotspot 실행
+    function runHotspot(spot) {
+      const data = hotspotData[spot.id];
+      if (!data) return;   // 잠긴(비활성) hotspot 등 → 아무 동작 없음
+      if (data.type === 'link') { window.open(data.url, '_blank'); return; }
+      const videos = data.videos || [];
+      if (videos.length === 0) return;
+      if (videos.length === 1) playSingle(videos[0]);
+      else openPanelStage(videos);
+    }
+
+    // hotspot 클릭/탭 → 데스크톱은 바로 실행, 모바일은 2단계(첫 탭=타겟보드, 재탭=실행)
+    document.querySelectorAll('.hotspot-target').forEach(spot => {
+      spot.addEventListener('click', (e) => {
+        if (isMobile) {
+          if (!spot.classList.contains('touched')) {
+            // 첫 탭: 타겟보드만 표시 (실행 안 함)
+            clearTouched(spot);
+            spot.classList.add('touched');
+            e.stopPropagation();
+            return;
+          }
+          // 두 번째 탭: 실행 (잠긴 것은 runHotspot 내부에서 무시됨)
+          e.stopPropagation();
+          runHotspot(spot);
+        } else {
+          runHotspot(spot);
+        }
+      });
+    });
+
+    function openPopup(title, videoUrl) {
+      panelStage.classList.remove('show');   // 열려있는 커버플로우를 먼저 닫음
+      popupTitle.innerText = title;
+      popup.style.display = 'flex';
+      popup.style.zIndex = ++topZIndex;
+
+      // 실제 렌더된 크기로 중앙 정렬 + 화면 밖으로 나가지 않게 고정
+      // (모바일에선 폭이 vw/vh 기준이라 하드코딩 값을 쓰면 어긋남)
+      const pw = popup.offsetWidth;
+      const ph = popup.offsetHeight;
+      const left = Math.max(8, (window.innerWidth - pw) / 2);
+      const top = Math.max(8, (window.innerHeight - ph) / 2);
+      popup.style.left = `${left}px`;
+      popup.style.top = `${top}px`;
+
+      const videoId = extractVideoId(videoUrl);
+      if (videoId) {
+        loadVideo(videoId);
+      }
+    }
+
+    function closePopup() {
+      popup.style.display = 'none';
+      videoFallback.classList.remove('show');
+      if (ytPlayer && typeof ytPlayer.stopVideo === 'function') {
+        ytPlayer.stopVideo();
+      }
+    }
+
+    // 모달 드래그 셔틀 컨트롤러
+    let isDragging = false;
+    let startX, startY, initialX, initialY;
+    const popupHeader = document.getElementById('popupHeader');
+
+    popupHeader.addEventListener('mousedown', (e) => {
+      if(e.target.classList.contains('popup-close')) return;
+      isDragging = true;
+      popup.style.zIndex = ++topZIndex;
+      startX = e.clientX;
+      startY = e.clientY;
+      initialX = popup.offsetLeft;
+      initialY = popup.offsetTop;
+    });
+
+    document.addEventListener('mousemove', (e) => {
+      if (!isDragging) return;
+      // 헤더(✕ 버튼)가 항상 화면 안에 남도록 이동 범위 제한
+      const nx = initialX + (e.clientX - startX);
+      const ny = initialY + (e.clientY - startY);
+      const maxX = window.innerWidth - 80;    // 최소한 일부는 화면에 남김
+      const maxY = window.innerHeight - 50;
+      popup.style.left = `${Math.min(Math.max(nx, -popup.offsetWidth + 80), maxX)}px`;
+      popup.style.top = `${Math.min(Math.max(ny, 0), maxY)}px`;
+    });
+
+    document.addEventListener('mouseup', () => { isDragging = false; });
+  </script>
+
+  <!-- ===== 관리자 모드 (#admin 으로 진입) ===== -->
+  <div class="admin-overlay" id="adminOverlay">
+    <div class="admin-box">
+      <div class="admin-head">
+        <h2>⚙ ADMIN // COMMERCIAL ARCHIVE</h2>
+        <button onclick="closeAdmin()" title="닫기">✕</button>
+      </div>
+
+      <!-- 로그인 화면 -->
+      <div class="admin-body admin-login" id="adminLogin">
+        <p class="admin-section-label">관리자 비밀번호를 입력하세요</p>
+        <input type="password" id="adminPw" placeholder="비밀번호" onkeydown="if(event.key==='Enter')adminAuth()">
+        <div class="err" id="adminErr"></div>
+        <button class="btn-mint" onclick="adminAuth()">잠금 해제</button>
+      </div>
+
+      <!-- 편집 화면 -->
+      <div class="admin-body" id="adminPanel" style="display:none">
+        <p class="admin-section-label">편집할 항목 선택</p>
+        <div class="admin-tabs" id="adminTabs"></div>
+
+        <p class="admin-section-label" id="adminListLabel" style="margin-top:20px;">영상 목록</p>
+        <div id="adminVidList"></div>
+        <button class="btn-ghost" onclick="adminAddRow()">＋ 영상 추가</button>
+
+        <div class="admin-actions">
+          <button class="btn-mint" id="adminSaveBtn" onclick="adminGenerateCode()">저장 (시트에 반영)</button>
+          <button class="btn-ghost" onclick="adminReset()">되돌리기</button>
+        </div>
+
+        <p class="admin-hint" style="margin-top:14px;">
+          저장하면 Google Sheets에 기록되고, 모든 방문자에게 즉시 반영됩니다.
+          영상이 1개면 팝업, 2개 이상이면 커버플로우로 자동 표시됩니다.
+        </p>
+      </div>
+    </div>
+  </div>
+  <div class="toast" id="toast"></div>
+
+  <script>
+    // ===== 관리자 모드 로직 =====
+    // 주의: 순수 프론트엔드라 비밀번호는 실수 방지용 잠금일 뿐, 완전한 보안이 아닙니다.
+    const ADMIN_PASSWORD = "lotte1234";   // ← 원하는 비밀번호로 변경하세요
+
+    const adminOverlay = document.getElementById('adminOverlay');
+    const adminLogin = document.getElementById('adminLogin');
+    const adminPanel = document.getElementById('adminPanel');
+    const adminVidList = document.getElementById('adminVidList');
+    const toastEl = document.getElementById('toast');
+
+    // 편집용 작업 사본 (실제 hotspotData는 저장 전까지 안 건드림)
+    let adminDraft = {};        // hotspotData의 깊은 복사본
+    let activeSpotId = null;     // 현재 편집 중인 hotspot id
+    let adminSessionPw = "";     // 로그인 시 입력한 비번 (저장 요청에 사용)
+
+    // hotspot 표시 이름 (탭 라벨용)
+    const spotLabels = {
+      "spot-tv": "TV",
+      "spot-figure": "피규어",
+      "spot-smartphone": "스마트폰",
+      "spot-voodoo": "부두인형"
+    };
+
+    function showToast(msg) {
+      toastEl.textContent = msg;
+      toastEl.classList.add('show');
+      setTimeout(() => toastEl.classList.remove('show'), 1800);
+    }
+
+    // #admin 이면 관리자 오버레이 열기
+    function checkAdminHash() {
+      if (location.hash === '#admin') openAdmin();
+    }
+    function openAdmin() {
+      adminOverlay.classList.add('show');
+      adminLogin.style.display = 'block';
+      adminPanel.style.display = 'none';
+      document.getElementById('adminErr').textContent = '';
+      document.getElementById('adminPw').value = '';
+    }
+    function closeAdmin() {
+      adminOverlay.classList.remove('show');
+      history.replaceState(null, '', location.pathname + location.search);
+    }
+
+    function adminAuth() {
+      const pw = document.getElementById('adminPw').value;
+      if (pw === ADMIN_PASSWORD) {
+        adminSessionPw = pw;   // 저장 시 시트로 함께 전송
+        adminLogin.style.display = 'none';
+        adminPanel.style.display = 'block';
+        loadDraft();
+        renderTabs();
+        // 첫 영상 편집 대상(link 타입 제외)을 기본 선택
+        const firstVideoSpot = Object.keys(adminDraft).find(id => adminDraft[id].videos);
+        selectSpot(firstVideoSpot);
+      } else {
+        document.getElementById('adminErr').textContent = '비밀번호가 일치하지 않습니다.';
+      }
+    }
+
+    // hotspotData → 작업 사본 (깊은 복사)
+    function loadDraft() {
+      adminDraft = {};
+      for (const [id, d] of Object.entries(hotspotData)) {
+        if (d.videos) {
+          adminDraft[id] = { title: d.title, videos: d.videos.map(v => ({ ...v })) };
+        } else {
+          adminDraft[id] = { ...d };   // link 타입은 그대로 (편집 UI 없음)
+        }
+      }
+    }
+
+    // hotspot 선택 탭 렌더링 (영상 편집 가능한 것만)
+    function renderTabs() {
+      const tabs = document.getElementById('adminTabs');
+      tabs.innerHTML = '';
+      Object.keys(adminDraft).forEach(id => {
+        if (!adminDraft[id].videos) return;   // link 타입은 탭에서 제외
+        const btn = document.createElement('button');
+        btn.className = 'admin-tab' + (id === activeSpotId ? ' active' : '');
+        const cnt = adminDraft[id].videos.length;
+        btn.innerHTML = `${spotLabels[id] || id}<span class="count">${cnt}</span>`;
+        btn.addEventListener('click', () => selectSpot(id));
+        tabs.appendChild(btn);
+      });
+    }
+
+    function selectSpot(id) {
+      if (!id) return;
+      activeSpotId = id;
+      document.getElementById('adminListLabel').textContent =
+        `${spotLabels[id] || id} 영상 목록  ·  ${adminDraft[id].videos.length}개면 ` +
+        (adminDraft[id].videos.length > 1 ? '커버플로우로 표시' : '팝업으로 표시');
+      renderTabs();
+      renderAdminRows();
+    }
+
+    // 현재 선택된 hotspot의 영상 행 렌더링
+    function renderAdminRows() {
+      const videos = adminDraft[activeSpotId].videos;
+      adminVidList.innerHTML = '';
+      videos.forEach((slide, i) => {
+        const row = document.createElement('div');
+        row.className = 'vid-row';
+        row.innerHTML = `
+          <img class="thumb" src="https://img.youtube.com/vi/${slide.id}/default.jpg" alt="">
+          <div class="fields">
+            <input data-i="${i}" data-k="title" value="${(slide.title||'').replace(/"/g,'&quot;')}" placeholder="제목 (예: LOCK_ON: COMMERCIAL 01)">
+            <input data-i="${i}" data-k="id" value="${(slide.id||'').replace(/"/g,'&quot;')}" placeholder="유튜브 영상 ID (watch?v= 뒤의 값)">
+          </div>
+          <button class="btn-danger" data-del="${i}">삭제</button>
+        `;
+        adminVidList.appendChild(row);
+      });
+
+      adminVidList.querySelectorAll('input').forEach(inp => {
+        inp.addEventListener('input', (e) => {
+          const idx = +e.target.dataset.i;
+          const key = e.target.dataset.k;
+          videos[idx][key] = e.target.value;
+          if (key === 'id') {
+            const img = e.target.closest('.vid-row').querySelector('.thumb');
+            img.src = `https://img.youtube.com/vi/${e.target.value}/default.jpg`;
+          }
+        });
+      });
+      adminVidList.querySelectorAll('[data-del]').forEach(btn => {
+        btn.addEventListener('click', () => {
+          videos.splice(+btn.dataset.del, 1);
+          selectSpot(activeSpotId);   // 라벨/탭 카운트 갱신 포함 재렌더
+        });
+      });
+    }
+
+    function adminAddRow() {
+      // 새 영상의 기본 태그는 해당 hotspot의 첫 영상 태그를 따름
+      const videos = adminDraft[activeSpotId].videos;
+      const defaultTag = videos[0]?.tag || '⚡';
+      videos.push({ id: "", tag: defaultTag, title: "" });
+      selectSpot(activeSpotId);
+    }
+    function adminReset() {
+      loadDraft();
+      selectSpot(activeSpotId);
+      showToast('편집을 취소했습니다');
+    }
+
+    // 저장: 시트에 직접 쓰기 (POST)
+    async function adminGenerateCode() {
+      // 각 hotspot의 빈 ID 영상 제거
+      for (const id of Object.keys(adminDraft)) {
+        if (adminDraft[id].videos) {
+          adminDraft[id].videos = adminDraft[id].videos.filter(v => (v.id||'').trim());
+        }
+      }
+
+      // 저장할 데이터 객체 구성 (깔끔하게 trim 처리)
+      const payload = {};
+      for (const [id, d] of Object.entries(adminDraft)) {
+        if (d.videos) {
+          payload[id] = {
+            title: (d.title || '').trim(),
+            videos: d.videos.map(v => ({
+              id: (v.id || '').trim(),
+              tag: v.tag || '⚡',
+              title: (v.title || '').trim()
+            }))
+          };
+        } else if (d.type === 'link') {
+          payload[id] = { type: 'link', url: (d.url || '').trim() };
+        }
+      }
+
+      const saveBtn = document.getElementById('adminSaveBtn');
+      if (saveBtn) { saveBtn.disabled = true; saveBtn.textContent = '저장 중...'; }
+
+      try {
+        // Apps Script는 CORS 프리플라이트를 피하기 위해 text/plain 으로 전송
+        const res = await fetch(APPS_SCRIPT_URL, {
+          method: 'POST',
+          headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+          body: JSON.stringify({ password: adminSessionPw, data: payload })
+        });
+        const json = await res.json();
+        if (json && json.ok) {
+          // 실제 사이트 데이터에도 즉시 반영
+          hotspotData = JSON.parse(JSON.stringify(payload));
+          renderTabs();
+          showToast('저장 완료 — 모든 방문자에게 반영됩니다');
+        } else {
+          showToast('저장 실패: ' + (json && json.error ? json.error : '알 수 없는 오류'));
+        }
+      } catch (err) {
+        showToast('저장 실패: 네트워크 오류');
+        console.error(err);
+      } finally {
+        if (saveBtn) { saveBtn.disabled = false; saveBtn.textContent = '저장 (시트에 반영)'; }
+      }
+    }
+
+    // 진입점: 로드 시 & 해시 변경 시
+    window.addEventListener('DOMContentLoaded', checkAdminHash);
+    window.addEventListener('hashchange', checkAdminHash);
+  </script>
+
+</body>
+</html>
